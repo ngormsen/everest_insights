@@ -2,3 +2,6 @@ venv
 *.pyc
 .DS_Store
 .env
+.vscode/settings.json
+cohort_table_viz.ipynb
+data/.ipynb_checkpoints/preprocessing-checkpoint.ipynb
