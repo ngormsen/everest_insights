@@ -84,10 +84,10 @@ def update_graph_output(contents, filename):
         # log_x=True, size_max=60)
     
         transaction_log_clean = preprocess_transaction_log(
-        df=df,
-        customer_id="userId",
-        timestamp="orderDate",
-        revenue="totalCharges"
+            df=df,
+            customer_id="userId",
+            timestamp="orderDate",
+            revenue="totalCharges"
         )
         cohort_table = cohort_based_revenue(transaction_log_clean, relative_to_acquisition_year=False)
         plt = plot_cohort_table(cohort_table)
