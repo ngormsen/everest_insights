@@ -21,7 +21,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 server = app.server
-
+global df
 # # LOAD DATA
 # transaction_log_raw = pd.read_csv('data/retail_relay.csv')
 # transaction_log_clean = preprocess_transaction_log(
@@ -63,52 +63,100 @@ app.layout = html.Div([
     #     figure=plt
     # ),
     html.Div(id="output-data-graph"),
-    html.Div(id='output-data-upload')
+    html.Div(id='output-data-upload'),
+    html.P(id='intermediate-value', style={'display': 'none'})
 ])
 
 
 # CALLBACKS
 dataParser = DataParser()
 
-@app.callback(Output('output-data-graph', 'children'),
+@app.callback(Output('intermediate-value', 'children'),
               [Input('upload-data', 'contents'),
-               Input('upload-data', 'filename')])
-def update_graph_output(contents, filename):
+               Input('upload-data', 'filename'),
+               ])
+def loadDataFrame(contents, filename):
+
     if contents is not None:
+
         contents = contents[0]
         filename = filename[0]
-        df = dataParser.parse_data(contents, filename)
-    
+
+        df = dataParser.parseDataFrame(contents, filename)
+
+        return df.to_json(date_format='iso', orient='split')
         # fig = px.scatter(df, x="gdp per capita", y="life expectancy",
         # size="population", color="continent", hover_name="country",
         # log_x=True, size_max=60)
     
-        transaction_log_clean = preprocess_transaction_log(
-            df=df,
-            customer_id="userId",
-            timestamp="orderDate",
-            revenue="totalCharges"
-        )
-        cohort_table = cohort_based_revenue(transaction_log_clean, relative_to_acquisition_year=False)
-        plt = plot_cohort_table(cohort_table)
 
-        return dcc.Graph(
-            id='cohort_data',
-            figure=plt
-        )
+
+@app.callback( Output('output-data-graph', 'children'),
+                [Input('intermediate-value', 'children'),
+                 Input('id-column','value'),
+                 Input('time-column', 'value'),
+                 Input('value-column', 'value')])
+def updateTableVisualisation(intermediateValue, idColumnValue, timeColumnValue, valueColumnValue ):
+    if idColumnValue is not None and timeColumnValue is not None and valueColumnValue is not None:
+        print(idColumnValue, timeColumnValue, valueColumnValue)
+        
+        if intermediateValue is not None:
+
+            transaction_log_clean = preprocess_transaction_log(
+                df=pd.read_json(intermediateValue, orient='split'),
+                customer_id="userId",
+                timestamp="orderDate",
+                revenue="totalCharges"
+            )
+
+            cohort_table = cohort_based_revenue(transaction_log_clean, relative_to_acquisition_year=False)
+            plt = plot_cohort_table(cohort_table)
+
+            return dcc.Graph(
+                id='cohort_data',
+                figure=plt
+            )
+
 
 
 @app.callback(Output('output-data-upload', 'children'),
-              [Input('upload-data', 'contents')],
-              [State('upload-data', 'filename'),
-               State('upload-data', 'last_modified')])
+              [Input('upload-data', 'contents'),
+               Input('upload-data', 'filename')])
+def updateTableVisualisation(contents, filename):
 
-def update_table_output(list_of_contents, list_of_names, list_of_dates):
-    if list_of_contents is not None:
+    if contents is not None:
+
+        contents = contents[0]
+        filename = filename[0]
+        df = dataParser.parseDataFrame(contents, filename)
+        columns = sorted(df)
+ 
+        options = [{'label':column,'value':column} for column in columns]
+        print(columns)
+
         children = [
-            dataParser.parse_contents(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates)]
+            dcc.Dropdown(
+                options=options,
+                id="id-column"
+            ),
+            dcc.Dropdown(
+                options=options,
+                id="time-column"
+            ),
+            dcc.Dropdown(
+                options=options,
+                id="value-column"
+            ),
+            dash_table.DataTable(
+                data=df.to_dict('records'),
+                columns=[{'name': i, 'id': i} for i in df.columns]
+            )
+        ]
+
         return children
+        
+
+
 
 
 
