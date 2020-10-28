@@ -47,20 +47,15 @@ class DataModel:
         Adds new column for the acquisition date. The acquisition date
         is the date of the first purchase for each customer.
         """
-        acq_timestamp = (trans_log
+        acq_timestamps = (trans_log
             .groupby("cust_id")["timestamp"]
             .min()
             .reset_index()
-            .rename(columns={"timestamp" : "acq_period"}))
+            .rename(columns={"timestamp" : "acq_timestamp"}))
 
         trans_log = (trans_log
             .set_index("cust_id")
-            .join(acq_timestamp.set_index("cust_id")))
-
-        acq_years = trans_log["acq_timestamp"].dt.year.apply(str)
-        acq_months = trans_log["acq_timestamp"].dt.month.apply(str)
-        acq_period = acq_years.str.cat(acq_months, sep="-")
-        trans_log["acq_period"] = acq_period
+            .join(acq_timestamps.set_index("cust_id")))
         return trans_log
 
     def compute_cohort_ages(self, trans_log, acq_timestamp, order_timestamp, by):
@@ -79,7 +74,7 @@ class DataModel:
         self.trans_log_clean = trans_log
         return trans_log
 
-    def translog_by_cohort(self, trans_log, dep_var):
+    def aggregate_translog_by_cohort(self, trans_log, dep_var):
         """
         Aggregates a customer-level transaction log into cohort-based data.
 
@@ -88,18 +83,19 @@ class DataModel:
         """
         if dep_var == "amount_spent":
             cohort_trans_log = (trans_log
-                .groupby(["acq_period", "timestamp"])["amount_spent"]
+                .groupby(["acq_timestamp", "timestamp"])["amount_spent"]
                 .sum()
                 .reset_index()
-                .rename(columns={"acq_period": "cohort"}))
+                .rename(columns={"acq_timestamp": "cohort"}))
         return cohort_trans_log
 
     def get_cohort_table(self, cohort_trans_log, dep_var="amount_spent"):
-        cohort_trans_log.pivot_table(
+        cohort_table = cohort_trans_log.pivot_table(
             index="cohort",
             columns="timestamp",
             values=dep_var 
         )
+        return cohort_table
 
     def plot_linechart(self, cohort_trans_log, dep_var, view="cohort-age"):
         """
@@ -107,22 +103,27 @@ class DataModel:
             view: String: One of "cohort-age" or "cohort-period"
         """
         if view == "cohort-age":
-            px.line(
+            plt = px.line(
                 cohort_trans_log,
                 x="age",
                 y=dep_var,
                 color="cohort"
             )
+            return plt
         elif view == "cohort-period":
-            px.line(
+            plt = px.line(
                 cohort_trans_log,
                 x="timestamp",
                 y=dep_var,
                 color="cohort"
             )
+            return plt
         else:
             raise ValueError("Unknown view. Choose cohort-age or cohort-period")
 
+    def get_translog(self):
+        return self.trans_log_clean
+        
 
 
 

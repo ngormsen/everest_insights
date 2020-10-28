@@ -15,6 +15,7 @@ import plotly.graph_objects as go
 import pandas as pd
 
 from utils import *
+from DataModel import DataModel
 from DataParser import DataParser
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -22,24 +23,11 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 server = app.server
 global df
-# # LOAD DATA
-# transaction_log_raw = pd.read_csv('data/retail_relay.csv')
-# transaction_log_clean = preprocess_transaction_log(
-#     df=transaction_log_raw,
-#     customer_id="userId",
-#     timestamp="orderDate",
-#     revenue="totalCharges"
-# )
-
-# # BUILD COHORT TABLE 
-# cohort_table = cohort_based_revenue(transaction_log_clean, relative_to_acquisition_year=False)
-# plt = plot_cohort_table(cohort_table)
-
 
 # APP LAYOUT
 app.layout = html.Div([
-        html.H1("Everest Insights"),
-        dcc.Upload(
+    html.H1("Everest Insights"),
+    dcc.Upload(
         id='upload-data',
         children=html.Div([
             'Drag and Drop or ',
@@ -55,13 +43,8 @@ app.layout = html.Div([
             'textAlign': 'center',
             'margin': '10px'
         },
-        # Allow multiple files to be uploaded
-        multiple=True
+        multiple=True # Allow multiple files to be uploaded
     ),
-    # dcc.Graph(
-    #     id='cohort-table',
-    #     figure=plt
-    # ),
     html.Div(id="output-data-graph"),
     html.Div(id='output-data-upload'),
     html.P(id='intermediate-value', style={'display': 'none'})
@@ -85,11 +68,7 @@ def loadDataFrame(contents, filename):
         df = dataParser.parseDataFrame(contents, filename)
 
         return df.to_json(date_format='iso', orient='split')
-        # fig = px.scatter(df, x="gdp per capita", y="life expectancy",
-        # size="population", color="continent", hover_name="country",
-        # log_x=True, size_max=60)
     
-
 
 @app.callback( Output('output-data-graph', 'children'),
                 [Input('intermediate-value', 'children'),
@@ -98,25 +77,33 @@ def loadDataFrame(contents, filename):
                  Input('value-column', 'value')])
 def updateTableVisualisation(intermediateValue, idColumnValue, timeColumnValue, valueColumnValue ):
     if idColumnValue is not None and timeColumnValue is not None and valueColumnValue is not None:
-        print(idColumnValue, timeColumnValue, valueColumnValue)
+        #print(idColumnValue, timeColumnValue, valueColumnValue)
         
         if intermediateValue is not None:
-
-            transaction_log_clean = preprocess_transaction_log(
-                df=pd.read_json(intermediateValue, orient='split'),
-                customer_id="userId",
-                timestamp="orderDate",
-                revenue="totalCharges"
+            translog_raw = pd.read_json(intermediateValue, orient='split')
+            preprocessor = DataModel(
+                transaction_log=translog_raw,
+                cust_id=idColumnValue,
+                timestamp=timeColumnValue,
+                amount_spent=valueColumnValue
             )
-
-            cohort_table = cohort_based_revenue(transaction_log_clean, relative_to_acquisition_year=False)
-            plt = plot_cohort_table(cohort_table)
-
-            return dcc.Graph(
-                id='cohort_data',
-                figure=plt
+            translog = preprocessor.get_translog()
+            translog_by_cohort = preprocessor.aggregate_translog_by_cohort(
+                trans_log=translog,
+                dep_var="amount_spent"
             )
-
+            translog_by_cohort = preprocessor.compute_cohort_ages(
+                trans_log=translog_by_cohort,
+                acq_timestamp="cohort",
+                order_timestamp="timestamp",
+                by="month"
+            )
+            plt = preprocessor.plot_linechart(
+                cohort_trans_log=translog_by_cohort,
+                dep_var="amount_spent",
+                view="cohort-age"
+            )
+            return dcc.Graph(id='cohort_data', figure=plt)
 
 
 @app.callback(Output('output-data-upload', 'children'),
@@ -137,27 +124,27 @@ def updateTableVisualisation(contents, filename):
         children = [
             dcc.Dropdown(
                 options=options,
-                id="id-column"
+                id="id-column",
+                placeholder="Customer ID"
             ),
             dcc.Dropdown(
                 options=options,
-                id="time-column"
+                id="time-column",
+                placeholder="Timestamp of Order"
             ),
             dcc.Dropdown(
                 options=options,
-                id="value-column"
+                id="value-column",
+                placeholder="Amount Spent per Order"
             ),
             dash_table.DataTable(
-                data=df.to_dict('records'),
+                data=df[:10].to_dict('records'),
                 columns=[{'name': i, 'id': i} for i in df.columns]
             )
         ]
 
         return children
         
-
-
-
 
 
 if __name__ == '__main__':
