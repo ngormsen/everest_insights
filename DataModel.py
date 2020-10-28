@@ -1,6 +1,7 @@
 from utils import get_month, get_date
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
 class DataModel:
     trans_log_raw = None
@@ -121,11 +122,72 @@ class DataModel:
         else:
             raise ValueError("Unknown view. Choose cohort-age or cohort-period")
 
+    def plot_c3(self, cohort_trans_log, dep_var="amount_spent"):
+
+        # Convert datetime to string
+        df = cohort_trans_log.copy()
+        df["timestamp"] = df["timestamp"].dt.strftime("%Y-%m")
+        df["cohort"] = df["cohort"].dt.strftime("%Y-%m")
+
+        plt_layout = go.Layout(
+            title = "Customer Cohort Chart",
+            xaxis_title="Period",
+            yaxis_title="Revenue",
+            xaxis = {'showgrid': False,
+                    'zeroline': True,
+                    'linecolor': 'rgb(100, 100, 100)',
+                    'ticks': 'outside'},
+            yaxis = {'showgrid': False,
+                    'zeroline': True,
+                    'linecolor': 'rgb(100, 100, 100)',
+                    'ticks': 'outside'
+                    },
+            plot_bgcolor = 'rgba(0, 0, 0, 0)'
+        )
+
+        plt = go.Figure(layout = plt_layout)
+        for cohort in df.cohort.unique():
+            plt.add_trace(go.Scatter(
+                name=cohort,
+                x=df[df["cohort"] == cohort]["timestamp"],
+                y=df[df["cohort"] == cohort]["amount_spent"],
+                stackgroup='one',
+                mode='none'
+            ))
+        return plt
+
     def get_translog(self):
         return self.trans_log_clean
         
 
-
+# ## TESTING
+# df = pd.read_csv("data/retail_relay.csv")
+# preprocessor = DataModel(
+#     transaction_log=df,
+#     cust_id="userId",
+#     timestamp="orderDate",
+#     amount_spent="totalCharges"
+# )
+# translog = preprocessor.get_translog()
+# translog_by_cohort = preprocessor.aggregate_translog_by_cohort(
+#     trans_log=translog,
+#     dep_var="amount_spent"
+# )
+# translog_by_cohort = preprocessor.compute_cohort_ages(
+#     trans_log=translog_by_cohort,
+#     acq_timestamp="cohort",
+#     order_timestamp="timestamp",
+#     by="month"
+# )
+# # plt = preprocessor.plot_linechart(
+# #     cohort_trans_log=translog_by_cohort,
+# #     dep_var="amount_spent",
+# #     view="cohort-age"
+# # )
+# plt = preprocessor.plot_c3(
+#     cohort_trans_log=translog_by_cohort,
+#     dep_var="amount_spent"
+# )
 
 
     

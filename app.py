@@ -45,9 +45,21 @@ app.layout = html.Div([
         },
         multiple=True # Allow multiple files to be uploaded
     ),
-    html.Div(id="output-data-graph"),
+    html.H2("Transaction Log"),
     html.Div(id='output-data-upload'),
-    html.P(id='intermediate-value', style={'display': 'none'})
+    html.P(id='intermediate-value', style={'display': 'none'}),
+    html.Br(),
+
+    # Customer Cohort Chart
+    html.H2("Customer Cohort Chart"),
+    html.Div(id="output-data-graph"),
+    html.Br(),
+
+    html.H2("Customer Lifetime Value"),
+    html.H3("Historical CLV"),
+    # html.Div(id="output-table-historical-clvs"),
+    html.H3("Residual CLV")
+
 ])
 
 
@@ -98,10 +110,14 @@ def updateTableVisualisation(intermediateValue, idColumnValue, timeColumnValue, 
                 order_timestamp="timestamp",
                 by="month"
             )
-            plt = preprocessor.plot_linechart(
+            # plt = preprocessor.plot_linechart(
+            #     cohort_trans_log=translog_by_cohort,
+            #     dep_var="amount_spent",
+            #     view="cohort-age"
+            # )
+            plt = preprocessor.plot_c3(
                 cohort_trans_log=translog_by_cohort,
-                dep_var="amount_spent",
-                view="cohort-age"
+                dep_var="amount_spent"
             )
             return dcc.Graph(id='cohort_data', figure=plt)
 
