@@ -5,6 +5,7 @@ library(DT)
 library(lubridate)
 
 source("ui.R")
+source("utils.R")
 
 
 server <- function(input, output, session) {
@@ -16,23 +17,44 @@ server <- function(input, output, session) {
         ext <- tools::file_ext(file$datapath)
         req(file)
         validate(need(ext == "csv", "Please upload a csv file"))
-        
+
         dt <- as.data.table(read.csv(file=file$datapath))
         dt
     })
     
     # Update inputs for choosing customerId-, orderId, and timestamp-column
     observe({
-        updateSelectInput(session, inputId = "custIdCol", choices = names(translogRaw()))
-        updateSelectInput(session, inputId = "orderIdCol", choices = names(translogRaw()))
-        updateSelectInput(session, inputId = "orderTimestampCol", choices = names(translogRaw()))
+        updateSelectInput(session, inputId = "custIdCol", choices = names(translogRaw()), selected = NULL)
+        updateSelectInput(session, inputId = "amountSpentCol", choices = names(translogRaw()), selected = NULL)
+        updateSelectInput(session, inputId = "orderTimestampCol", choices = names(translogRaw()), selected = NULL)
     })
     
-
+    # Once the user clicks on "Start Preprocessing"-Button, start preprocessing
+    translogClean <- eventReactive(input$startPreprocessing, {
+        PreprocessRawTransactionLog(
+            data = translogRaw(),
+            columns = list("custId" = input$custIdCol,
+                           "amountSpent" = input$amountSpentCol,
+                           "orderTimestamp" = input$orderTimestampCol)
+        )
+    })
+    
+    dt <- reactive({
+        CreateCohortCols(data = translogClean(), cohortType = input$cohortType)
+    })
+    
 # Outputs ---------------------------------------------------------
     output$plotTranslogRaw <- renderDT({
-        translogRaw()
+        translogClean()
+    })
+    
+    output$plotCohortData <- renderDT({
+        dt()
+    })
+
+    output$plotC3 <- renderPlot({
+        PlotC3(dt())
     })
 }
 
-shinyApp(ui=ui, server=server)
+# shinyApp(ui=ui, server=server)
