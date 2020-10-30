@@ -21,6 +21,7 @@ from DataParser import DataParser
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app.config['suppress_callback_exceptions']=True
 server = app.server
 global df
 
@@ -48,6 +49,8 @@ app.layout = html.Div([
     html.H2("Transaction Log"),
     html.Div(id='output-data-upload'),
     html.P(id='intermediate-value', style={'display': 'none'}),
+    html.P(id='pre-processed-data', style={'display': 'none'}),
+    html.P(id='more-hidden-stuff', style={'display': 'none'}),
     html.Br(),
 
     # Customer Cohort Chart
@@ -66,6 +69,16 @@ app.layout = html.Div([
 # CALLBACKS
 dataParser = DataParser()
 
+@app.callback(Output('more-hidden-stuff', 'children'),
+              [Input('pre-processed-data', 'children')])
+def processData(contents):
+
+    if contents is not None:
+        translog = pd.read_json(contents, orient='split')
+        return contents
+    
+
+
 @app.callback(Output('intermediate-value', 'children'),
               [Input('upload-data', 'contents'),
                Input('upload-data', 'filename'),
@@ -82,11 +95,12 @@ def loadDataFrame(contents, filename):
         return df.to_json(date_format='iso', orient='split')
     
 
-@app.callback( Output('output-data-graph', 'children'),
+@app.callback( [Output('output-data-graph', 'children'),
+                Output('pre-processed-data', 'children')],
                 [Input('intermediate-value', 'children'),
                  Input('id-column','value'),
                  Input('time-column', 'value'),
-                 Input('value-column', 'value')])
+                 Input('value-column', 'value')], prevent_initial_call=True)
 def updateTableVisualisation(intermediateValue, idColumnValue, timeColumnValue, valueColumnValue ):
     if idColumnValue is not None and timeColumnValue is not None and valueColumnValue is not None:
         #print(idColumnValue, timeColumnValue, valueColumnValue)
@@ -119,7 +133,7 @@ def updateTableVisualisation(intermediateValue, idColumnValue, timeColumnValue, 
                 cohort_trans_log=translog_by_cohort,
                 dep_var="amount_spent"
             )
-            return dcc.Graph(id='cohort_data', figure=plt)
+            return dcc.Graph(id='cohort_data', figure=plt), translog.to_json(date_format='iso', orient='split')
 
 
 @app.callback(Output('output-data-upload', 'children'),
