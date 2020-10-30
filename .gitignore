@@ -6,3 +6,4 @@ venv
 cohort_table_viz.ipynb
 data/.ipynb_checkpoints/preprocessing-checkpoint.ipynb
 data/.ipynb_checkpoints/SyntheticCohortData-checkpoint.ipynb
+.Rproj.user
