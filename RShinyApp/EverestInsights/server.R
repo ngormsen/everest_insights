@@ -57,7 +57,7 @@ server <- function(input, output, session) {
     })
     
     output$plotC3 <- renderPlot({
-        PlotC3(dt())
+        PlotC3(dt(), input$cohortType)
     })
 }
 
