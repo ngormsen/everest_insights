@@ -28,6 +28,7 @@ CreateCohortCols <- function(data, cohortType){
   dt[, orderMonth := lubridate::month(orderTimestamp)]
   dt[, orderQuarter := lubridate::quarter(orderTimestamp)]
   dt[, orderYear := lubridate::year(orderTimestamp)]
+  dt[, orderYearMonth := format(orderTimestamp, "%Y-%m")]
   
   if (cohortType == "Monthly Cohorts"){
     dt[, cohort := format(acqTimestamp, "%Y-%m")]
@@ -41,19 +42,46 @@ CreateCohortCols <- function(data, cohortType){
     dt[, cohort := format(acqTimestamp, "%Y")]
     dt[, cohortAge := orderYear - acqYear]
   }
-  return(dt[, c("custId", "amountSpent", "orderTimestamp", "cohort", "cohortAge")])
+  return(dt[, c("custId", "amountSpent", "orderTimestamp", "orderYearMonth", "cohort", "cohortAge")])
 }
 
-PlotC3 <- function(data){
+PlotCohortAgeLinechart <- function(data){
   dtPlt <- data[, .N, by = .(cohort, cohortAge)]
   dtPlt[, cohort := as.character(cohort)]
   #        cohort cohortAge N
   # 1: 2009-01-11         0 2
   # 2: 2009-01-11         1 5
-  ggplot(dtPlt, aes(x = cohortAge, y = N, color = cohort)) +
-    geom_line() +
-    theme_bw() +
-    ggtitle("Number of Customers per Cohort")
-    # theme(legend.position = "none")
+  dtPlt %>% 
+    mutate(cohort = fct_reorder(cohort, desc(cohort))) %>% 
+    ggplot(aes(x = cohortAge, y = N, color = cohort)) +
+      geom_line() +
+      theme_bw()
 }
 
+PlotC3 <- function(data){
+  # Note: works only for monthly periods!!
+  dtPlt <- data[, .N, by = .(cohort, orderYearMonth)]
+  dtPlt[, orderYearMonth := as.Date(paste0(orderYearMonth, "-01"))]
+  
+  cohorts <- unique(dtPlt$cohort)
+  acqDate <- as.Date(paste0(cohorts, "-01"))
+  acqDateAdjusted <- acqDate %m-% months(1)
+  
+  tempRows <- data.table(
+    cohort = cohorts,
+    period = acqDateAdjusted,
+    N = 0
+  )
+  
+  setnames(dtPlt, old = "orderYearMonth", new = "period")
+  dtPlt <- rbind(dtPlt[, c("cohort", "period", "N")], tempRows)
+  
+  dtPlt %>% 
+    mutate(cohort = fct_reorder(cohort, desc(cohort))) %>% 
+    ggplot(aes(x = period, y = N, fill = cohort)) +
+      geom_area(position = "stack", alpha = 0.8) +
+      geom_line(position = "stack", alpha=0.5) +
+      theme_bw() +
+      ylab("Number of Customers") +
+      xlab("Period")
+}

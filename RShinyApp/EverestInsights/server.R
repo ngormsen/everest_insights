@@ -52,6 +52,10 @@ server <- function(input, output, session) {
         dt()
     })
 
+    output$plotCohortAgeLinechart <- renderPlot({
+        PlotCohortAgeLinechart(dt())
+    })
+    
     output$plotC3 <- renderPlot({
         PlotC3(dt())
     })

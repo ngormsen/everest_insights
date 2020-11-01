@@ -27,7 +27,16 @@ ui <- shinyUI(fluidPage(
         selected = "Monthly Cohorts"
     ),
     # DTOutput(outputId="plotCohortData"),
-    plotOutput("plotC3")
+    # tabsetPanel(type = "tabs",
+    #             tabPanel("Linechart", plotOutput("plotCohortAgeLinechart")),
+    #             tabPanel("C3", plotOutput("plotC3"))
+    # )
+    fluidRow(
+        column(6, plotOutput("plotCohortAgeLinechart")),
+        column(6, plotOutput("plotC3"))
+    )
+    # plotOutput("plotCohortAgeLinechart"),
+    # plotOutput("plotC3")
 
     # CLV Analysis ------------------------------------------------------------------
 ))
