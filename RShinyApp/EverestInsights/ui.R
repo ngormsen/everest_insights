@@ -17,26 +17,20 @@ ui <- shinyUI(fluidPage(
     
     DTOutput(outputId="plotTranslogRaw"),
     
-
-    # Cohort Analysis ------------------------------------------------------------------
+    
     h2("Cohort Analysis"),
     selectInput(
         inputId = "cohortType",
-        label = "Choose Type of Cohorts", 
+        label = NULL, 
         choices = c("Monthly Cohorts", "Quarterly Cohorts", "Yearly Cohorts"),
         selected = "Monthly Cohorts"
     ),
-    # DTOutput(outputId="plotCohortData"),
-    # tabsetPanel(type = "tabs",
-    #             tabPanel("Linechart", plotOutput("plotCohortAgeLinechart")),
-    #             tabPanel("C3", plotOutput("plotC3"))
-    # )
     fluidRow(
         column(6, plotOutput("plotCohortAgeLinechart")),
         column(6, plotOutput("plotC3"))
-    )
-    # plotOutput("plotCohortAgeLinechart"),
-    # plotOutput("plotC3")
-
-    # CLV Analysis ------------------------------------------------------------------
+    ),
+    
+    
+    h2("CLV Analysis"),
+    plotOutput("plotCLVScatterplot")
 ))

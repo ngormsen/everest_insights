@@ -1,3 +1,5 @@
+
+# Computations ------------------------------------------------------------
 PreprocessRawTransactionLog <- function(data, columns){
   # only select relevant columns
   dtOut <- data[, c(columns[["custId"]],
@@ -45,9 +47,27 @@ CreateCohortCols <- function(data, cohortType){
     dt[, cohortAge := orderYear - acqYear]
     dt[, orderPeriod := lubridate::year(orderTimestamp)]
   }
-  return(dt[, c("custId", "amountSpent", "orderTimestamp", "orderPeriod", "cohort", "cohortAge")])
+  return(dt[, c("custId", "amountSpent", "orderTimestamp", "orderPeriod", "orderYearMonth", "cohort", "cohortAge")])
 }
 
+ComputeCLV <- function(transLog) {
+  dt <- copy(transLog)
+  dt[, avgAmountSpentPerOrder := mean(amountSpent), by = custId]
+  dt[, numOrdersPerMonth := .N, by = .(custId, orderYearMonth)]
+  dt[, avgNumOrdersPerMonth := mean(numOrdersPerMonth), by = custId]
+  dt[, avgRevenuePerMonth := avgAmountSpentPerOrder * avgNumOrdersPerMonth]
+  dt[, retentionRate := 0.8]
+  dt[, discRateYearly := 0.1]
+  dt[, discRateMonthly := discRateYearly^(1/12)]
+  dt[, marginMultiplier := 1 / (1 - (retentionRate/(1 + discRateMonthly)))]
+  
+  dataPerCustomer <- unique(dt, by = "custId")
+  dataPerCustomer[, clv := avgRevenuePerMonth * marginMultiplier]
+  
+  return(dataPerCustomer[, c("custId", "clv")])
+}
+
+# Plots -------------------------------------------------------------------
 PlotC3 <- function(data, cohortType){
   # Note: works only for monthly periods!!
   dtPlt <- data[, .N, by = .(cohort, orderPeriod)]
@@ -126,6 +146,16 @@ PlotCohortAgeLinechart <- function(data){
     theme_bw()
 }
 
+PlotCLVDensity <- function(dataCLV) {
+  ggplot(clvs, aes(x = clv)) +
+    geom_density(color = "white", fill = "purple", alpha = 0.5) +
+    geom_rug() +
+    theme_bw()
+}
+
+
+
+# Small Help Functions ---------------------------------------------------------------
 QuarterToTimestamp <- function(yearDotQuarter){
   year <- as.numeric(str_extract(yearDotQuarter, "[0-9]+"))
   qrtr <- as.numeric(str_sub(yearDotQuarter, -1, -1))

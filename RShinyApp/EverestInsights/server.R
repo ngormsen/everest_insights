@@ -43,6 +43,10 @@ server <- function(input, output, session) {
         CreateCohortCols(data = translogClean(), cohortType = input$cohortType)
     })
     
+    clvs <- reactive({
+        ComputeCLV(transLog = dt())
+    })
+    
 # Outputs ---------------------------------------------------------
     output$plotTranslogRaw <- renderDT({
         translogClean()
@@ -58,6 +62,10 @@ server <- function(input, output, session) {
     
     output$plotC3 <- renderPlot({
         PlotC3(dt(), input$cohortType)
+    })
+    
+    output$plotCLVScatterplot <- renderPlot({
+        PlotCLVDensity(clvs())
     })
 }
 
