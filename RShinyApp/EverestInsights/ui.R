@@ -1,36 +1,42 @@
 library(shiny)
+library(shinymaterial)
+library(DT)
 
 # Define UI for application that draws a histogram
-ui <- shinyUI(fluidPage(
+ui <- material_page(fluidPage(
 
     # Header ------------------------------------------------------------------
     titlePanel("Everest Insights"),
 
 
     # Dataset -----------------------------------------------------------------
-    fileInput(inputId = "userInputFile", label = "Transaction Log", accept = ".csv"),
-    
-    selectInput("custIdCol", "Customer ID", choices = NULL),
-    selectInput("amountSpentCol", "Amount Spent", choices = NULL),
-    selectInput("orderTimestampCol", "Timestamp of Order", choices = NULL),
-    actionButton("startPreprocessing", "Preprocess Dataset"),
+    # fileInput(inputId = "userInputFile", label = "Transaction Log", accept = ".csv"),
+    material_card(
+        material_file_input(input_id = "userInputFile", label = "Transaction Log"),
+        material_dropdown(input_id = "custIdCol", label = "Customer ID", choices = NULL, multiple = FALSE, color = "#ef5350"),
+        material_dropdown("amountSpentCol", "Amount Spent", choices = NULL, multiple = FALSE, color = "#ef5350"),
+        material_dropdown("orderTimestampCol", "Timestamp of Order", choices = NULL, multiple = FALSE, color = "#ef5350"),
+        actionButton("startPreprocessing", "Preprocess Dataset"),
+    ),
     
     DTOutput(outputId="plotTranslogRaw"),
     
-    
-    h2("Cohort Analysis"),
-    selectInput(
-        inputId = "cohortType",
-        label = NULL, 
-        choices = c("Monthly Cohorts", "Quarterly Cohorts", "Yearly Cohorts"),
-        selected = "Monthly Cohorts"
+    material_card(
+        h2("Cohort Analysis"),
+        selectInput(
+            inputId = "cohortType",
+            label = NULL, 
+            choices = c("Monthly Cohorts", "Quarterly Cohorts", "Yearly Cohorts"),
+            selected = "Monthly Cohorts"
+        ),
+        fluidRow(
+            column(6, plotOutput("plotCohortAgeLinechart")),
+            column(6, plotOutput("plotC3"))
+        ),
     ),
-    fluidRow(
-        column(6, plotOutput("plotCohortAgeLinechart")),
-        column(6, plotOutput("plotC3"))
-    ),
     
-    
-    h2("CLV Analysis"),
-    plotOutput("plotCLVScatterplot")
+    material_card(
+        h2("CLV Analysis"),
+        plotOutput("plotCLVScatterplot")
+    )
 ))

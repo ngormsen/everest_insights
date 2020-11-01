@@ -24,9 +24,9 @@ server <- function(input, output, session) {
     
     # Update inputs for choosing customerId-, orderId, and timestamp-column
     observe({
-        updateSelectInput(session, inputId = "custIdCol", choices = names(translogRaw()), selected = NULL)
-        updateSelectInput(session, inputId = "amountSpentCol", choices = names(translogRaw()), selected = NULL)
-        updateSelectInput(session, inputId = "orderTimestampCol", choices = names(translogRaw()), selected = NULL)
+        update_material_dropdown(session, input_id = "custIdCol", value = names(translogRaw())[1], choices = names(translogRaw()))
+        update_material_dropdown(session, input_id = "amountSpentCol", value = names(translogRaw())[2], choices = names(translogRaw()))
+        update_material_dropdown(session, input_id = "orderTimestampCol", value = names(translogRaw())[3], choices = names(translogRaw()))
     })
     
     # Once the user clicks on "Start Preprocessing"-Button, start preprocessing
