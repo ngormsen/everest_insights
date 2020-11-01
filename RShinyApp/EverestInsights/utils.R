@@ -1,3 +1,4 @@
+library(ggthemes)
 
 # Computations ------------------------------------------------------------
 PreprocessRawTransactionLog <- function(data, columns){
@@ -128,7 +129,7 @@ PlotC3 <- function(data, cohortType){
     ggplot(aes(x = period, y = N, fill = cohort)) +
     geom_area(position = "stack", alpha = 0.8) +
     geom_line(position = "stack", alpha=0.5) +
-    theme_bw() +
+    theme_economist_white(gray_bg = F) +
     ylab("Number of Customers") +
     xlab("Period")
 }
@@ -142,15 +143,25 @@ PlotCohortAgeLinechart <- function(data){
   dtPlt %>% 
     mutate(cohort = fct_reorder(cohort, desc(cohort))) %>% 
     ggplot(aes(x = cohortAge, y = N, color = cohort)) +
-    geom_line() +
-    theme_bw()
+    geom_line(size = 1) +
+    geom_point() + 
+    theme_economist_white(gray_bg = F) +
+    scale_color_economist()
 }
 
 PlotCLVDensity <- function(dataCLV) {
-  ggplot(clvs, aes(x = clv)) +
-    geom_density(color = "white", fill = "purple", alpha = 0.5) +
+  ggplot(dataCLV, aes(x = clv)) +
+    geom_density(fill = economist_pal()(1),
+                 color = "white",
+                 alpha = 0.5) +
     geom_rug() +
-    theme_bw()
+    theme_economist_white(gray_bg = FALSE) +
+    ggtitle("Distribution of CLVs") +
+    theme(
+      panel.grid.major.y = element_blank(),
+      axis.text.y = element_blank(),
+      axis.title.y = element_blank()
+    )
 }
 
 

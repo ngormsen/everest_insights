@@ -12,11 +12,15 @@ translogClean <- PreprocessRawTransactionLog(
 )
 
 # Create cohort-based data from aclean Transaction Log
-cohortType <- "Quarterly Cohorts"
+cohortType <- "Monthly Cohorts"
 
 dt <- CreateCohortCols(
   data = translogClean,
   cohortType = cohortType
 )
 
+# PlotCohortAgeLinechart(dt)
+PlotC3(dt, "Monthly Cohorts")
 
+clv <- ComputeCLV(dt)
+PlotCLVDensity(clv)
