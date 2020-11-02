@@ -68,6 +68,30 @@ ComputeCLV <- function(transLog) {
   return(dataPerCustomer[, c("custId", "clv")])
 }
 
+#' Computes for each customer
+#'     (1) Recency := timestamp of last order
+#'     (2) Frequency := average number of purchases per month
+#'
+#' @return data.table with columns: "custId", "frequency", "recency"
+ComputeRecencyFrequency <- function(translog){
+  dt <- copy(translog)
+  dt[, recentPurchaseTimestamp := max(orderTimestamp), by = custId]
+  
+  frequency <- dt[, .N, by = .(custId, orderPeriod)]
+  frequency[, avgNumPurchasesPerMonth := mean(N), by = custId]
+  frequency <- unique(frequency, by = "custId")
+  frequency[, c("custId", "avgNumPurchasesPerMonth")]
+  
+  # join
+  out <- merge(dt, frequency, all.x = T, by = "custId")
+  out <- out[, c("custId", "avgNumPurchasesPerMonth", "recentPurchaseTimestamp")]
+  out <- unique(out, by = "custId")
+  setnames(out,
+           old = c("avgNumPurchasesPerMonth", "recentPurchaseTimestamp"),
+           new = c("frequency", "recency"))
+  return(out)
+}
+
 # Plots -------------------------------------------------------------------
 PlotC3 <- function(data, cohortType){
   # Note: works only for monthly periods!!
@@ -164,6 +188,11 @@ PlotCLVDensity <- function(dataCLV) {
     )
 }
 
+PlotRecencyFrequency <- function(data) {
+  ggplot(data, aes(x = recency, y = frequency)) +
+    geom_point() +
+    theme_economist()
+}
 
 
 # Small Help Functions ---------------------------------------------------------------

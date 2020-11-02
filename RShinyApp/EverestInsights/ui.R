@@ -19,7 +19,9 @@ ui <- material_page(fluidPage(
         actionButton("startPreprocessing", "Preprocess Dataset"),
     ),
     
-    DTOutput(outputId="plotTranslogRaw"),
+    material_card(
+        DTOutput(outputId="plotTranslogRaw"),
+    ),
     
     material_card(
         h2("Cohort Analysis"),
@@ -38,5 +40,10 @@ ui <- material_page(fluidPage(
     material_card(
         h2("CLV Analysis"),
         plotOutput("plotCLVScatterplot")
+    ),
+    
+    material_card(
+        h2("Recency & Frequency Segmentation"),
+        plotOutput("plotRecencyFrequency")
     )
 ))

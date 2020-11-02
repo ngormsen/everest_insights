@@ -47,6 +47,10 @@ server <- function(input, output, session) {
         ComputeCLV(transLog = dt())
     })
     
+    recencyFrequency <- reactive({
+        ComputeRecencyFrequency(dt())
+    })
+    
 # Outputs ---------------------------------------------------------
     output$plotTranslogRaw <- renderDT({
         translogClean()
@@ -66,6 +70,10 @@ server <- function(input, output, session) {
     
     output$plotCLVScatterplot <- renderPlot({
         PlotCLVDensity(clvs())
+    })
+    
+    output$plotRecencyFrequency <- renderPlot({
+        PlotRecencyFrequency(recencyFrequency())
     })
 }
 

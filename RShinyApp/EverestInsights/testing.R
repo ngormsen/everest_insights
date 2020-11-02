@@ -24,3 +24,27 @@ PlotC3(dt, "Monthly Cohorts")
 
 clv <- ComputeCLV(dt)
 PlotCLVDensity(clv)
+
+
+
+# Recency Frequency -------------------------------------------------------
+
+# most recent purchase by customer
+dt[, recentPurchaseTimestamp := max(orderTimestamp), by = custId]
+
+frequency <- dt[, .N, by = .(custId, orderPeriod)]
+frequency[, avgNumPurchasesPerMonth := mean(N), by = custId]
+frequency <- unique(frequency, by = "custId")
+frequency[, c("custId", "avgNumPurchasesPerMonth")]
+
+# join
+out <- merge(dt, frequency, all.x = T, by = "custId")
+out <- out[, c("custId", "avgNumPurchasesPerMonth", "recentPurchaseTimestamp")]
+out <- unique(out, by = "custId")
+setnames(out,
+         old = c("avgNumPurchasesPerMonth", "recentPurchaseTimestamp"),
+         new = c("frequency", "recency"))
+
+
+ggplot(out, aes(x = recency, y = frequency)) +
+  geom_point()
