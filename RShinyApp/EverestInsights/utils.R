@@ -194,6 +194,24 @@ PlotRecencyFrequency <- function(data) {
     theme_economist()
 }
 
+PlotTranslog <- function(translog) {
+  DT::datatable(
+    translog,
+    options = list(
+      pageLength = 10, # number of rows to display
+      searching = F,   # disable search field
+      paging = F,      # disable "show x entries" button
+      scroller = T,
+      scrollY = 300
+    )
+  ) %>% 
+    # Reduce font size of the table entries
+    DT::formatStyle(
+      columns = names(translog),
+      fontSize = '85%'
+    )
+}
+
 
 # Small Help Functions ---------------------------------------------------------------
 QuarterToTimestamp <- function(yearDotQuarter){

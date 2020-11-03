@@ -52,7 +52,7 @@ server <- function(input, output, session) {
   
   # Outputs ---------------------------------------------------------
   output$plotTranslogRaw <- renderDT({
-    translogClean()
+    PlotTranslog(translogClean())
   })
   
   output$plotCohortData <- renderDT({
@@ -76,4 +76,4 @@ server <- function(input, output, session) {
   })
 }
 
-# shinyApp(ui=ui, server=server)
+shinyApp(ui=ui, server=server)
