@@ -26,9 +26,9 @@ mtcars2 <- mtcars[, c("mpg", "cyl", "disp", "hp", "wt", "am", "gear")]
     
     # Update inputs for choosing customerId-, orderId, and timestamp-column
     observe({
-        update_material_dropdown(session, input_id = "custIdCol", value = names(translogRaw())[3], choices = names(translogRaw()))
-        update_material_dropdown(session, input_id = "amountSpentCol", value = names(translogRaw())[4], choices = names(translogRaw()))
-        update_material_dropdown(session, input_id = "orderTimestampCol", value = names(translogRaw())[2], choices = names(translogRaw()))
+        updateSelectInput(session, inputId = "custIdCol", choices = names(translogRaw()))
+        updateSelectInput(session, inputId = "amountSpentCol", choices = names(translogRaw()))
+        updateSelectInput(session, inputId = "orderTimestampCol", choices = names(translogRaw()))
     })
     
     # Once the user clicks on "Start Preprocessing"-Button, start preprocessing
@@ -56,7 +56,7 @@ mtcars2 <- mtcars[, c("mpg", "cyl", "disp", "hp", "wt", "am", "gear")]
     
 # Outputs ---------------------------------------------------------
     output$plotTranslogRaw <- renderDT({
-        translogClean()
+        PlotTranslog(translogClean())
     })
     
     output$plotCohortData <- renderDT({

@@ -1,7 +1,7 @@
 library(shiny)
 library(shinymaterial)
 library(DT)
-library(fresh)
+# library(fresh)
 
 source("html_elements.R")
 
@@ -11,7 +11,6 @@ ui <- shinyUI(fluidPage(
   
   # Header ------------------------------------------------------------------
   HTML(htmlHeader),
-  HTML(dividerHTML),
   
   # Dataset -----------------------------------------------------------------
   fluidRow(
