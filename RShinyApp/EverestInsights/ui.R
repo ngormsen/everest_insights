@@ -26,31 +26,34 @@ ui <- shinyUI(fluidPage(
         )
     ),
     
-    HTML(dividerHTML),
     h2("Cohort Analysis"),
-    selectInput(
-        inputId = "cohortType",
-        label = NULL, 
-        choices = c("Monthly Cohorts", "Quarterly Cohorts", "Yearly Cohorts"),
-        selected = "Monthly Cohorts"
-    ),
-    fluidRow(
-        column(6, plotOutput("plotCohortAgeLinechart")),
-        column(6, plotOutput("plotC3"))
+    materialCard(
+        selectInput(
+            inputId = "cohortType",
+            label = NULL, 
+            choices = c("Monthly Cohorts", "Quarterly Cohorts", "Yearly Cohorts"),
+            selected = "Monthly Cohorts"
+        ),
+        fluidRow(
+            column(6, plotOutput("plotCohortAgeLinechart")),
+            column(6, plotOutput("plotC3"))
+        )
     ),
     
-    HTML(dividerHTML),
     h2("CLV Analysis"),
-    plotOutput("plotCLVScatterplot"),
-    
-    HTML(dividerHTML),
-    h2("Recency & Frequency Segmentation"),
-    plotOutput(
-        "plotRecencyFrequency",
-        height = 300,
-        click = "plotRecencyFrequency_click",
-        brush = brushOpts(id = "plotRecencyFrequency_brush")
+    materialCard(
+        plotOutput("plotCLVScatterplot"),
     ),
-    textOutput("customer_title"),
-    verbatimTextOutput("click_info")
+    
+    h2("Recency & Frequency Segmentation"),
+    materialCard(
+        plotOutput(
+            "plotRecencyFrequency",
+            height = 300,
+            click = "plotRecencyFrequency_click",
+            brush = brushOpts(id = "plotRecencyFrequency_brush")
+        ),
+        textOutput("customer_title"),
+        verbatimTextOutput("click_info")
+    )
 ))
