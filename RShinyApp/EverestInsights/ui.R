@@ -44,6 +44,16 @@ ui <- material_page(fluidPage(
     
     material_card(
         h2("Recency & Frequency Segmentation"),
-        plotOutput("plotRecencyFrequency")
+        plotOutput(
+            "plotRecencyFrequency", height = 300,
+           # Equivalent to: click = clickOpts(id = "plot_click")
+        click = "plotRecencyFrequency_click",
+        brush = brushOpts(id = "plotRecencyFrequency_brush")
+        ),
+        material_card(
+            textOutput("customer_title"),
+            verbatimTextOutput("click_info")
+        )
+        
     )
 ))

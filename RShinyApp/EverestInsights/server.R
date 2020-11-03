@@ -10,6 +10,8 @@ source("utils.R")
 
 server <- function(input, output, session) {
     
+mtcars2 <- mtcars[, c("mpg", "cyl", "disp", "hp", "wt", "am", "gear")]
+    
 
 # Calculations ------------------------------------------------------------
     translogRaw <- reactive({
@@ -24,9 +26,9 @@ server <- function(input, output, session) {
     
     # Update inputs for choosing customerId-, orderId, and timestamp-column
     observe({
-        update_material_dropdown(session, input_id = "custIdCol", value = names(translogRaw())[1], choices = names(translogRaw()))
-        update_material_dropdown(session, input_id = "amountSpentCol", value = names(translogRaw())[2], choices = names(translogRaw()))
-        update_material_dropdown(session, input_id = "orderTimestampCol", value = names(translogRaw())[3], choices = names(translogRaw()))
+        update_material_dropdown(session, input_id = "custIdCol", value = names(translogRaw())[3], choices = names(translogRaw()))
+        update_material_dropdown(session, input_id = "amountSpentCol", value = names(translogRaw())[4], choices = names(translogRaw()))
+        update_material_dropdown(session, input_id = "orderTimestampCol", value = names(translogRaw())[2], choices = names(translogRaw()))
     })
     
     # Once the user clicks on "Start Preprocessing"-Button, start preprocessing
@@ -51,6 +53,7 @@ server <- function(input, output, session) {
         ComputeRecencyFrequency(dt())
     })
     
+    
 # Outputs ---------------------------------------------------------
     output$plotTranslogRaw <- renderDT({
         translogClean()
@@ -72,8 +75,22 @@ server <- function(input, output, session) {
         PlotCLVDensity(clvs())
     })
     
+        
     output$plotRecencyFrequency <- renderPlot({
         PlotRecencyFrequency(recencyFrequency())
+    })
+    
+    selected_customers <- reactive({
+        nearPoints(recencyFrequency(), input$plotRecencyFrequency_click, addDist = TRUE)
+    })
+    
+    output$click_info <- renderPrint({
+        selected_customers()
+    })
+    
+    output$customer_title <- renderPrint({
+        customerId <- selected_customers()[['custId']]
+        paste("Customer:", customerId, clvs()[custId %in% customerId, clv])
     })
 }
 
