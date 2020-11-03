@@ -26,25 +26,16 @@ clv <- ComputeCLV(dt)
 PlotCLVDensity(clv)
 
 
-
-# Recency Frequency -------------------------------------------------------
-
-# most recent purchase by customer
-dt[, recentPurchaseTimestamp := max(orderTimestamp), by = custId]
-
-frequency <- dt[, .N, by = .(custId, orderPeriod)]
-frequency[, avgNumPurchasesPerMonth := mean(N), by = custId]
-frequency <- unique(frequency, by = "custId")
-frequency[, c("custId", "avgNumPurchasesPerMonth")]
-
-# join
-out <- merge(dt, frequency, all.x = T, by = "custId")
-out <- out[, c("custId", "avgNumPurchasesPerMonth", "recentPurchaseTimestamp")]
-out <- unique(out, by = "custId")
-setnames(out,
-         old = c("avgNumPurchasesPerMonth", "recentPurchaseTimestamp"),
-         new = c("frequency", "recency"))
+# Material Card -----------------------------------------------------------
+materialCard <- function (...) {
+  shiny::tags$div(
+    class = "card",
+    shiny::tags$div(
+      class = "card-content", 
+      # shiny::tags$span(class = "card-title", title), 
+      shiny::tags$div(class = "", ...)
+    )
+  )
+}
 
 
-ggplot(out, aes(x = recency, y = frequency)) +
-  geom_point()

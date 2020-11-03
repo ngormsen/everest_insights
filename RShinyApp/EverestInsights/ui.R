@@ -11,17 +11,19 @@ ui <- shinyUI(fluidPage(
     # Header ------------------------------------------------------------------
     HTML(htmlHeader),
 
-
     # Dataset -----------------------------------------------------------------
-    fluidRow(
-        column(3,
-               fileInput("userInputFile", "Transaction Log", accept = ".csv"),
-               selectInput("custIdCol", "Customer ID", choices = NULL, multiple = FALSE),
-               selectInput("amountSpentCol", "Amount Spent", choices = NULL, multiple = FALSE),
-               selectInput("orderTimestampCol", "Timestamp of Order", choices = NULL, multiple = FALSE),
-               actionButton("startPreprocessing", "Preprocess Dataset")
-        ),
-        column(9, DTOutput(outputId="plotTranslogRaw"))
+    h2("Import Data"),
+    materialCard(
+        fluidRow(
+            column(3,
+                   fileInput("userInputFile", "Transaction Log", accept = ".csv"),
+                   selectInput("custIdCol", "Customer ID", choices = NULL, multiple = FALSE),
+                   selectInput("amountSpentCol", "Amount Spent", choices = NULL, multiple = FALSE),
+                   selectInput("orderTimestampCol", "Timestamp of Order", choices = NULL, multiple = FALSE),
+                   actionButton("startPreprocessing", "Preprocess Dataset")
+            ),
+            column(9, DTOutput(outputId="plotTranslogRaw"))
+        )
     ),
     
     HTML(dividerHTML),

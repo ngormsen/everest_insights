@@ -14,3 +14,14 @@ dividerHTML <- "
 <hr style='border-top: 1px solid darkgray;'>
 </div>
 "
+
+materialCard <- function (...) {
+  shiny::tags$div(
+    class = "card",
+    shiny::tags$div(
+      class = "card-content", 
+      # shiny::tags$span(class = "card-title", title), 
+      shiny::tags$div(class = "", ...)
+    )
+  )
+}
