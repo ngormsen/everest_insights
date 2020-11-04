@@ -26,9 +26,9 @@ mtcars2 <- mtcars[, c("mpg", "cyl", "disp", "hp", "wt", "am", "gear")]
     
     # Update inputs for choosing customerId-, orderId, and timestamp-column
     observe({
-        updateSelectInput(session, inputId = "custIdCol", choices = names(translogRaw()))
-        updateSelectInput(session, inputId = "amountSpentCol", choices = names(translogRaw()))
-        updateSelectInput(session, inputId = "orderTimestampCol", choices = names(translogRaw()))
+        updateSelectInput(session, inputId = "custIdCol", choices = names(translogRaw())[3])
+        updateSelectInput(session, inputId = "amountSpentCol", choices = names(translogRaw())[4])
+        updateSelectInput(session, inputId = "orderTimestampCol", choices = names(translogRaw())[2])
     })
     
     # Once the user clicks on "Start Preprocessing"-Button, start preprocessing
@@ -80,18 +80,47 @@ mtcars2 <- mtcars[, c("mpg", "cyl", "disp", "hp", "wt", "am", "gear")]
         PlotRecencyFrequency(recencyFrequency())
     })
     
+# Outputs Customer Info -----------------------------------------------
+    
+    
     selected_customers <- reactive({
-        nearPoints(recencyFrequency(), input$plotRecencyFrequency_click, addDist = TRUE)
+        nearPoints(
+            recencyFrequency(), 
+            input$plotRecencyFrequency_click, 
+            addDist = TRUE)
+    })
+    
+    first_selected_customer <- reactive({
+        selected_customers()[1,]
+    })
+    
+
+    output$click_info_recency <- renderText({
+        paste("Recency:", first_selected_customer()[,recency])
+    })
+    
+    output$click_info_frequency <- renderText({
+        paste("Frequency:", round(first_selected_customer()[,2],2))
+    })
+    
+    output$click_info_clv <- renderText({
+        customerId <- selected_customers()[['custId']][1]
+        paste("CLV:", round(clvs()[custId %in% customerId, clv], 2))
+    })
+    
+        
+    output$click_info_customer <- renderPrint({
+        first_selected_customer()
     })
     
     output$click_info <- renderPrint({
         selected_customers()
     })
     
-    output$customer_title <- renderPrint({
-        customerId <- selected_customers()[['custId']]
-        paste("Customer:", customerId, clvs()[custId %in% customerId, clv])
-    })
+    # output$customer_title <- renderPrint({
+    #     customerId <- selected_customers()[['custId']]
+    #     paste("Customer:", customerId, clvs()[custId %in% customerId, clv])
+    # })
 }
 
 # shinyApp(ui=ui, server=server)

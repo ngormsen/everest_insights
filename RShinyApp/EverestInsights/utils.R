@@ -1,5 +1,4 @@
 library(ggthemes)
-library(plotly)
 
 # Computations ------------------------------------------------------------
 PreprocessRawTransactionLog <- function(data, columns){

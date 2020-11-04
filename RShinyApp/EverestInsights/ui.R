@@ -53,7 +53,19 @@ ui <- shinyUI(fluidPage(
             click = "plotRecencyFrequency_click",
             brush = brushOpts(id = "plotRecencyFrequency_brush")
         ),
-        textOutput("customer_title"),
-        verbatimTextOutput("click_info")
-    )
+        materialCard(
+            fluidRow(
+                column(width=4,
+                       fluidRow("Max Mustermann", style = "height:25px; font-weight:bold; text-align:center"),
+                       fluidRow(img(src='customer_icon.png', style = "height:175px"), style = "height:175px; text-align:center")),
+                column(width = 8,
+                       fluidRow("Details", style = "height:50px;  font-size:250%; font-weight:bold;"),
+                       fluidRow(textOutput("click_info_clv"), style = "height:50px;  font-size:200%"),
+                       fluidRow(textOutput("click_info_frequency"), style = "height:50px; font-size:200%"),
+                       fluidRow(textOutput("click_info_recency"), style = "height:50px;  font-size:200%"),
+                       ))
+        )
+        
+    ),
+    
 ))
