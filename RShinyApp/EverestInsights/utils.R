@@ -1,4 +1,5 @@
 library(ggthemes)
+library(plotly)
 
 # Computations ------------------------------------------------------------
 PreprocessRawTransactionLog <- function(data, columns){
@@ -94,7 +95,6 @@ ComputeRecencyFrequency <- function(translog){
 
 # Plots -------------------------------------------------------------------
 PlotC3 <- function(data, cohortType){
-  # Note: works only for monthly periods!!
   dtPlt <- data[, .N, by = .(cohort, orderPeriod)]
   
   if (cohortType == "Monthly Cohorts"){
@@ -137,25 +137,44 @@ PlotC3 <- function(data, cohortType){
     period = periodBeforeAcquisition,
     N = 0 # dependent variable
   )
-  
-  
   dtPlt <- rbind(dtPlt[, c("cohort", "period", "N")], tempRows)
   
   if (cohortType == "Yearly Cohorts") {
     dtPlt$period <- as.numeric(dtPlt$period)
   }
   if (cohortType == "Quarterly Cohorts") {
-    dtPlt$period <- sapply(dtPlt$period, function(x) QuarterToTimestamp(x))
+    xLabels <- QuarterToPrettyString(sort(unique(dtPlt$period)))
+    quarters <- lapply(dtPlt$period, function(x) QuarterToTimestamp(x))
+    quarters <- purrr::flatten_chr(quarters)
+    dtPlt$period <- as.Date(quarters)
+    xBreaks <- sort(unique(dtPlt$period))
   }
-  dtPlt %>% 
+  dtPlt <- dtPlt %>% 
     mutate(cohort = as.factor(cohort)) %>% 
-    mutate(cohort = fct_reorder(cohort, desc(cohort))) %>% 
-    ggplot(aes(x = period, y = N, fill = cohort)) +
-    geom_area(position = "stack", alpha = 0.8) +
-    geom_line(position = "stack", alpha=0.5) +
-    theme_economist_white(gray_bg = F) +
-    ylab("Number of Customers") +
+    mutate(cohort = fct_reorder(cohort, desc(cohort)))
+  
+  plt <- ggplot(dtPlt, aes(x = period, y = N, fill = cohort)) +
+    geom_area(position = "stack") +
+    geom_line(position = "stack", alpha=0.2) +
+    theme_classic() +
+    theme(
+      axis.text = element_text(color = "grey50", size = 12),
+      axis.text.x = element_text(angle = 60, hjust = .5, vjust = .5, face = "plain"),
+      axis.title = element_text(color = "grey30", size = 12, face = "bold"),
+      axis.title.y = element_text(angle = 0),
+      axis.line = element_line(color = "grey50"),
+      legend.position = "top",
+      legend.text = element_text(color = "grey50")
+    ) +
+    labs(fill = "Cohort") +
+    ylab("Number \n of \n Customers") +
     xlab("Period")
+  
+  if (cohortType == "Quarterly Cohorts"){
+    plt <- plt + 
+      scale_x_date(breaks = xBreaks, labels = xLabels)
+  }
+  return(plt)
 }
 
 PlotCohortAgeLinechart <- function(data){
@@ -165,12 +184,27 @@ PlotCohortAgeLinechart <- function(data){
   # 1: 2009-01-11         0 2
   # 2: 2009-01-11         1 5
   dtPlt %>% 
-    mutate(cohort = fct_reorder(cohort, desc(cohort))) %>% 
-    ggplot(aes(x = cohortAge, y = N, color = cohort)) +
-    geom_line(size = 1) +
-    geom_point() + 
-    theme_economist_white(gray_bg = F) +
-    scale_color_economist()
+    mutate(cohort = fct_reorder(cohort, desc(cohort)))
+  
+  xBreaks <- sort(unique(dtPlt$cohortAge))
+  
+  ggplot(dtPlt, aes(x = cohortAge, y = N, color = cohort)) +
+    geom_line() +
+    geom_point(size = 2, alpha = 0.5) +
+    theme_classic() +
+    theme(
+      axis.text = element_text(color = "grey50", size = 12),
+      axis.text.x = element_text(angle = 60, hjust = .5, vjust = .5, face = "plain"),
+      axis.title = element_text(color = "grey30", size = 12, face = "bold"),
+      axis.title.y = element_text(angle = 0),
+      axis.line = element_line(color = "grey50"),
+      legend.position = "top",
+      legend.text = element_text(color = "grey50")
+    ) +
+    scale_x_continuous(breaks = xBreaks) +
+    labs(color = "Cohort") +
+    xlab("Age") +
+    ylab("Number \n of \n Customers")
 }
 
 PlotCLVDensity <- function(dataCLV) {
@@ -221,5 +255,11 @@ QuarterToTimestamp <- function(yearDotQuarter){
   if (qrtr == 2) monthDay <- "04-01" # 1.April - 30.Juni
   if (qrtr == 3) monthDay <- "07-01" # 1. Juli - 30. Sept
   if (qrtr == 4) monthDay <- "10-01" # 1. Okt - 31.Dez
-  return(as.Date(paste0(year, "-", monthDay)))
+  return(paste0(year, "-", monthDay))
+}
+
+QuarterToPrettyString <- function(yearDotQuarter){
+  year <- as.numeric(str_extract(yearDotQuarter, "[0-9]+"))
+  qrtr <- as.numeric(str_sub(yearDotQuarter, -1, -1))
+  return(paste0(year, " Q", qrtr))
 }

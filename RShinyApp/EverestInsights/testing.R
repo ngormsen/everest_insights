@@ -12,30 +12,13 @@ translogClean <- PreprocessRawTransactionLog(
 )
 
 # Create cohort-based data from aclean Transaction Log
-cohortType <- "Monthly Cohorts"
+cohortType <- "Quarterly Cohorts"
 
 dt <- CreateCohortCols(
   data = translogClean,
   cohortType = cohortType
 )
 
-# PlotCohortAgeLinechart(dt)
-PlotC3(dt, "Monthly Cohorts")
 
-clv <- ComputeCLV(dt)
-PlotCLVDensity(clv)
-
-
-# Material Card -----------------------------------------------------------
-materialCard <- function (...) {
-  shiny::tags$div(
-    class = "card",
-    shiny::tags$div(
-      class = "card-content", 
-      # shiny::tags$span(class = "card-title", title), 
-      shiny::tags$div(class = "", ...)
-    )
-  )
-}
-
-
+# Cohort Chart -----------------------------------------------------------
+PlotCohortAgeLinechart(dt)
