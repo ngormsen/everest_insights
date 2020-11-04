@@ -214,18 +214,36 @@ PlotCLVDensity <- function(dataCLV) {
                  alpha = 0.5) +
     geom_rug() +
     theme_economist_white(gray_bg = FALSE) +
-    ggtitle("Distribution of CLVs") +
+    ggtitle("Distribution of CLVs \n") +
+    theme_classic() + 
     theme(
-      panel.grid.major.y = element_blank(),
-      axis.text.y = element_blank(),
-      axis.title.y = element_blank()
-    )
+      axis.text = element_text(color = "grey50", size = 12),
+      axis.text.x = element_text(angle = 60, hjust = .5, vjust = .5, face = "plain"),
+      axis.title = element_text(color = "grey30", size = 12, face = "bold"),
+      axis.title.y = element_text(angle = 0),
+      axis.line = element_line(color = "grey50"),
+      legend.position = "top",
+      legend.text = element_text(color = "grey50")
+    ) +
+    xlab("CLV ($)") +
+    ylab("Density")
 }
 
 PlotRecencyFrequency <- function(data) {
   ggplot(data, aes(x = recency, y = frequency)) +
     geom_point() +
-    theme_economist()
+    theme_classic() +
+    theme(
+      axis.text = element_text(color = "grey50", size = 12),
+      axis.text.x = element_text(angle = 60, hjust = .5, vjust = .5, face = "plain"),
+      axis.title = element_text(color = "grey30", size = 12, face = "bold"),
+      axis.title.y = element_text(angle = 0),
+      axis.line = element_line(color = "grey50"),
+      legend.position = "top",
+      legend.text = element_text(color = "grey50")
+    ) +
+    xlab("Recency (last purchase date)") +
+    ylab("Frequency \n (avg. number of \n purchases \n per period)")
 }
 
 PlotTranslog <- function(translog) {

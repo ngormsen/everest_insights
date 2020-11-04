@@ -22,3 +22,9 @@ dt <- CreateCohortCols(
 
 # Cohort Chart -----------------------------------------------------------
 PlotCohortAgeLinechart(dt)
+
+clv <- ComputeCLV(dt)
+PlotCLVDensity(clv)
+
+
+PlotRecencyFrequency(ComputeRecencyFrequency(dt))
