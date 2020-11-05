@@ -1,5 +1,4 @@
 library(shiny)
-library(shinymaterial)
 library(DT)
 
 source("html_elements.R")

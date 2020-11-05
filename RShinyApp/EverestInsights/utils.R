@@ -1,5 +1,3 @@
-library(ggthemes)
-
 # Computations ------------------------------------------------------------
 PreprocessRawTransactionLog <- function(data, columns){
   # only select relevant columns
@@ -208,11 +206,10 @@ PlotCohortAgeLinechart <- function(data){
 
 PlotCLVDensity <- function(dataCLV) {
   ggplot(dataCLV, aes(x = clv)) +
-    geom_density(fill = economist_pal()(1),
+    geom_density(fill = "lightblue",
                  color = "white",
                  alpha = 0.5) +
     geom_rug() +
-    theme_economist_white(gray_bg = FALSE) +
     ggtitle("Distribution of CLVs \n") +
     theme_classic() + 
     theme(
