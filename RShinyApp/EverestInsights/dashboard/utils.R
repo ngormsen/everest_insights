@@ -92,6 +92,16 @@ ComputeRecencyFrequency <- function(translog){
   return(out)
 }
 
+GetDataCohortTableOfNumPurchases <- function(translog, x){
+  data <- translog %>% 
+    group_by(cohort, get(x)) %>% 
+    count() %>% 
+    rename(period = `get(x)`) %>% 
+    mutate(cohort = as.factor(cohort)) %>% 
+    mutate(cohort = factor(cohort, levels = rev(levels(cohort))))
+  return(data)
+}
+
 # Plots -------------------------------------------------------------------
 PlotC3 <- function(data, cohortType){
   dtPlt <- data[, .N, by = .(cohort, orderPeriod)]
@@ -204,6 +214,22 @@ PlotCohortAgeLinechart <- function(data){
     labs(color = "Cohort") +
     xlab("Age") +
     ylab("Number \n of \n Customers")
+}
+
+PlotCohortTableOfNumPurchases <- function(data){
+  ggplot(data, aes(x = period, y = cohort, fill = n)) +
+    geom_raster() +
+    geom_text(aes(label = n), color = "black") +
+    scale_fill_continuous(high = "#239af6", low = "#e7f4fe") +
+    theme_classic() +
+    theme(
+      axis.text = element_text(color = "grey50", size = 12),
+      axis.text.x = element_text(angle = 60, hjust = .5, vjust = .5, face = "plain"),
+      axis.title = element_text(color = "grey30", size = 12, face = "bold"),
+      axis.title.y = element_text(angle = 0),
+      axis.line = element_line(color = "grey50"), 
+      legend.position = "none"
+    )
 }
 
 PlotCLVDensity <- function(dataCLV) {

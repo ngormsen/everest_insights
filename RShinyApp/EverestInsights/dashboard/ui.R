@@ -11,9 +11,8 @@ tabDashboard <- tabItem(
 
 tabCohortAnalysis <- tabItem(
   tabName = "tabCohortAnalysis",
-  box(title="Hello", plotOutput("myplot"))
+  box(title="Number of Purchases", plotOutput("cohortTableNPurchases"))
 )
-
 
 
 # Header, Sidebar, Body ---------------------------------------------------

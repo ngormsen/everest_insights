@@ -9,6 +9,8 @@ source("utils.R")
 
 server <- function(input, output, session) {
   
+
+# Data Import + Preprocessing --------------------------------------------------------------------
   translogRaw <- reactive({
     translogRaw <- as.data.table(read.csv("retail_relay2.csv"))
   })
@@ -26,13 +28,14 @@ server <- function(input, output, session) {
   translog <- reactive({
     CreateCohortCols(data = translogClean(), cohortType = "Monthly Cohorts")
   })
-  
+
+# Computations ------------------------------------------------------------
+
+
+
+# Plots -------------------------------------------------------------------
   output$plotTranslogRaw <- renderDT({
     PlotTranslog(translogClean())
-  })
-  
-  output$myplot <- renderPlot({
-    hist(rnorm(5))
   })
   
   output$myvaluebox <- renderValueBox({
@@ -40,5 +43,10 @@ server <- function(input, output, session) {
       value = paste0(round(mean(translog()$amountSpent), 2), " $"),
       subtitle = "Avg. Order Size"
     )
+  })
+  
+  output$cohortTableNPurchases <- renderPlot({
+    data <- GetDataCohortTableOfNumPurchases(translog(), x = "orderPeriod")
+    PlotCohortTableOfNumPurchases(data)
   })
 }
