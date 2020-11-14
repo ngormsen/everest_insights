@@ -4,6 +4,7 @@
 
 # Load and Clean a Transaction Log
 translogRaw <- as.data.table(read.csv("data/retail_relay2.csv"))
+
 translogClean <- PreprocessRawTransactionLog(
   data = translogRaw,
   columns = list("custId" = "customerId",
@@ -12,7 +13,7 @@ translogClean <- PreprocessRawTransactionLog(
 )
 
 # Create cohort-based data from aclean Transaction Log
-cohortType <- "Quarterly Cohorts"
+cohortType <- "Monthly Cohorts"
 
 dt <- CreateCohortCols(
   data = translogClean,

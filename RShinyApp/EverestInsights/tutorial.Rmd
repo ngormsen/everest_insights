@@ -1,0 +1,36 @@
+---
+title: "data_wrangling"
+author: "Nils Gandlau"
+date: "14 11 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(data.table)
+library(tidyverse)
+
+dt <- as.data.table(read.csv(file = "data/retail_relay2.csv"))
+```
+
+## Data
+
+```{r}
+head(dt)
+```
+
+```{r}
+dt
+```
+
+```{r}
+# dplyr
+dt %>% # %>% strg+shift+m
+  group_by(orderPeriod) %>% 
+  count()
+```
+
+```{r}
+# data.table
+dt[, .N, by = orderPeriod]
+```
