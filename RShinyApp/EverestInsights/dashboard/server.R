@@ -49,4 +49,14 @@ server <- function(input, output, session) {
     data <- GetDataCohortTableOfNumPurchases(translog(), x = "orderPeriod")
     PlotCohortTableOfNumPurchases(data)
   })
+  
+  output$cohortTableCustom <- renderPlot({
+    data <- GetDataCohortTableCustom(
+      translog = translog(),
+      x = "orderPeriod",
+      var = input$selectSummariseVar,
+      fun = input$selectSummariseFunc
+    )
+    PlotCohortTableCustom(data)
+  })
 }

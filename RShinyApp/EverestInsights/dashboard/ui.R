@@ -11,7 +11,12 @@ tabDashboard <- tabItem(
 
 tabCohortAnalysis <- tabItem(
   tabName = "tabCohortAnalysis",
-  box(title="Number of Purchases", plotOutput("cohortTableNPurchases"))
+  box(title="Number of Purchases", plotOutput("cohortTableNPurchases")),
+  box(
+    selectInput("selectSummariseVar", "Variable", choices = c("amountSpent")),
+    selectInput("selectSummariseFunc", "Function", choices = c("mean", "median", "max", "min", "sum", "n_distinct")),
+    plotOutput("cohortTableCustom")
+  )
 )
 
 
