@@ -10,8 +10,6 @@ source("utils.R")
 
 server <- function(input, output, session) {
     
-mtcars2 <- mtcars[, c("mpg", "cyl", "disp", "hp", "wt", "am", "gear")]
-    
 
 # Calculations ------------------------------------------------------------
     translogRaw <- reactive({
