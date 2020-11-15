@@ -236,7 +236,7 @@ PlotCohortAgeLinechart <- function(data){
   xBreaks <- sort(unique(dtPlt$cohortAge))
   
   colors_layer_cust <- colorRampPalette(brewer.pal(n = 9, name = "Blues"))(length(xBreaks))
-  ggplot(dtPlt, aes(x = cohortAge, y = N, fill = cohort)) +
+  ggplot(dtPlt, aes(x = cohortAge, y = N, color = cohort)) +
     geom_line() +
     geom_point(size = 2, alpha = 0.5) +
     theme_classic() +
@@ -250,10 +250,10 @@ PlotCohortAgeLinechart <- function(data){
       legend.text = element_text(color = "grey50")
     ) +
     scale_x_continuous(breaks = xBreaks) +
-    labs(fill = "Cohort") +
+    labs(color = "Cohort") +
     xlab("Age") +
     ylab("Number of Customers") +
-    scale_fill_manual(values = colors_layer_cust)
+    scale_colour_manual(values = colors_layer_cust)
 }
 
 PlotCohortTableOfNumPurchases <- function(data){
