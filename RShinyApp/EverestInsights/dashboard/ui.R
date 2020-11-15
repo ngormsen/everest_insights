@@ -15,9 +15,20 @@ tabDashboard <- tabItem(
 
 tabCohortAnalysis <- tabItem(
   tabName = "tabCohortAnalysis",
-  box(title="Hello", plotOutput("myplot"))
+  # box(title="Number of Purchases", plotOutput("cohortTableNPurchases")),
+  box(
+    fluidRow(
+      column(4, selectInput("selectSummariseVar", "Variable", choices = c("amountSpent"))),
+      column(4, selectInput("selectSummariseFunc", "Function", choices = c("mean", "median", "max", "min", "sum", "n_distinct"))),
+      column(4, selectInput("selectRelativeTo", "Relative To", choices = c("none", "acq", "prev")))
+    ),
+    plotOutput("cohortTableCustom"),
+    title = "Cohort Analysis",
+    solidHeader = T,
+    width = 12,
+    height = "850px"
+  )
 )
-
 
 
 # Header, Sidebar, Body ---------------------------------------------------

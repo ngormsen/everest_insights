@@ -23,9 +23,16 @@ dt <- CreateCohortCols(
 
 # Cohort Chart -----------------------------------------------------------
 PlotCohortAgeLinechart(dt)
-
 clv <- ComputeCLV(dt)
 PlotCLVDensity(clv)
-
-
 PlotRecencyFrequency(ComputeRecencyFrequency(dt))
+
+x <- GetDataCohortTableCustom(dt, x = "orderPeriod", var = "amountSpent", fun = mean, relativeTo = "acq")
+PlotCohortTableCustom(x, perc = T)
+
+acqRev <- dt %>%
+  group_by(cohort) %>% 
+  summarise(acqRev = var) %>% 
+  filter(orderId = min(orderId))
+
+GetDataCohortTableOfNumPurchases(dt, x = "orderPeriod", z = "amountSpent", fun = median)

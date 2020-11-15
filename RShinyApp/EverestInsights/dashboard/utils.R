@@ -92,6 +92,43 @@ ComputeRecencyFrequency <- function(translog){
   return(out)
 }
 
+GetDataCohortTableOfNumPurchases <- function(translog, x){
+  data <- translog %>% 
+    group_by(cohort, get(x)) %>% 
+    count() %>% 
+    rename(period = `get(x)`) %>% 
+    mutate(cohort = as.factor(cohort)) %>% 
+    mutate(cohort = factor(cohort, levels = rev(levels(cohort))))
+  return(data)
+}
+
+GetDataCohortTableCustom <- function(translog, x, var, fun, relativeTo = NULL){
+  data <- translog %>% 
+    group_by(cohort, get(x)) %>% 
+    summarise_at(.vars = var, .funs = fun) %>% 
+    rename(period = `get(x)`) %>%
+    mutate(cohort = as.factor(cohort)) %>% 
+    mutate(cohort = factor(cohort, levels = rev(levels(cohort)))) %>% 
+    setDT()
+  
+  setnames(data, old = var, new = "var")
+  data[, var := round(var)]
+  
+  if (relativeTo == "acq"){
+    acq <- data[period == cohort]
+    acq[, acqValue := var]
+    acq <- acq[, c("cohort", "acqValue")]
+    
+    data <- merge(data, acq, by = "cohort", all.x = T)
+    data[, var := round((var / acqValue) * 100)]
+    data[, varLabel := paste0(var, "%")]
+    return(data)
+  } else if (relativeTo == "prev"){
+    #TODO    
+  } 
+  return(data)
+}
+
 # Plots -------------------------------------------------------------------
 PlotC3 <- function(data, cohortType){
   dtPlt <- data[, .N, by = .(cohort, orderPeriod)]
@@ -204,6 +241,51 @@ PlotCohortAgeLinechart <- function(data){
     labs(color = "Cohort") +
     xlab("Age") +
     ylab("Number \n of \n Customers")
+}
+
+PlotCohortTableOfNumPurchases <- function(data){
+  ggplot(data, aes(x = period, y = cohort, fill = n)) +
+    geom_raster() +
+    geom_text(aes(label = n), color = "black") +
+    scale_fill_continuous(high = "#239af6", low = "#e7f4fe") +
+    theme_classic() +
+    theme(
+      axis.text = element_text(color = "grey50", size = 12),
+      axis.text.x = element_text(angle = 60, hjust = .5, vjust = .5, face = "plain"),
+      axis.title = element_text(color = "grey30", size = 12, face = "bold"),
+      axis.title.y = element_text(angle = 0),
+      axis.line = element_line(color = "grey50"), 
+      legend.position = "none"
+    )
+}
+
+PlotCohortTableCustom <- function(data, perc = F){
+  plt <- ggplot(data, aes(x = period, y = cohort, fill = var)) +
+    geom_raster() +
+    scale_fill_continuous(high = "#239af6", low = "#e7f4fe") +
+    theme_classic() +
+    theme(
+      axis.text = element_text(color = "grey50", size = 12),
+      axis.text.x = element_text(angle = 60, hjust = .5, vjust = .5, face = "plain"),
+      axis.title = element_text(color = "grey30", size = 12, face = "bold"),
+      axis.title.y = element_text(angle = 0),
+      axis.line = element_line(color = "grey50"), 
+      legend.position = "none"
+    )
+  
+  if (perc == F){
+    plt <- plt + geom_text(
+      data = data, 
+      mapping = aes(x = period, y = cohort, label = var), color = "black"
+    )
+  } else if (perc == T){
+    plt <- plt + geom_text(
+      data = data, 
+      mapping = aes(x = period, y = cohort, label = varLabel), 
+      color = "black"
+    )
+  }
+  return(plt)
 }
 
 PlotCLVDensity <- function(dataCLV) {
