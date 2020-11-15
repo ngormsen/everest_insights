@@ -10,6 +10,8 @@ tabDashboard <- tabItem(
   valueBoxOutput("numberOfCustomers"),
   box(plotOutput("customerPerMonth")),
   box(plotOutput("revenuePerMonth")),
+  box(plotOutput("revenuePerCustomerCohortDevelopment")),
+  box(plotOutput("plotC3")),
   DTOutput(outputId="plotTranslogRaw"),
 )
 

@@ -2,6 +2,7 @@ library(data.table)
 library(tidyverse)
 library(DT)
 library(lubridate)
+library(RColorBrewer)
 
 source("ui.R")
 source("utils.R")
@@ -67,6 +68,13 @@ server <- function(input, output, session) {
       ylab("Revenue Per Month")
   })
   
+  dt <- reactive({
+    CreateCohortCols(data = translogClean(), cohortType = "Monthly Cohorts")
+  })
+  
+  output$revenuePerCustomerCohortDevelopment <- renderPlot({
+    PlotCohortAgeLinechart(dt())
+  })
   
   output$numberOfCustomers <- renderValueBox({
     valueBox(
@@ -75,6 +83,12 @@ server <- function(input, output, session) {
       icon = icon("credit-card")
     )
   })
+  
+  output$plotC3 <- renderPlot({
+    PlotC3(dt(), "Monthly Cohorts")
+  })
+  
+  
 # Plots Cohort----------------------------------------------------------
   
   output$cohortTableNPurchases <- renderPlot({

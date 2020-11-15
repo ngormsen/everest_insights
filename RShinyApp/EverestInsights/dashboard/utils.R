@@ -198,6 +198,7 @@ PlotC3 <- function(data, cohortType){
     mutate(cohort = as.factor(cohort)) %>% 
     mutate(cohort = fct_reorder(cohort, desc(cohort)))
   
+  colors_layer_cust <- colorRampPalette(brewer.pal(n = 9, name = "Blues"))(length(cohorts))
   plt <- ggplot(dtPlt, aes(x = period, y = N, fill = cohort)) +
     geom_area(position = "stack") +
     geom_line(position = "stack", alpha=0.2) +
@@ -206,14 +207,15 @@ PlotC3 <- function(data, cohortType){
       axis.text = element_text(color = "grey50", size = 12),
       axis.text.x = element_text(angle = 60, hjust = .5, vjust = .5, face = "plain"),
       axis.title = element_text(color = "grey30", size = 12, face = "bold"),
-      axis.title.y = element_text(angle = 0),
+      axis.title.y = element_text(angle = 90),
       axis.line = element_line(color = "grey50"),
       legend.position = "top",
       legend.text = element_text(color = "grey50")
     ) +
     labs(fill = "Cohort") +
-    ylab("Number \n of \n Customers") +
-    xlab("Period")
+    ylab("Number of Customers") +
+    xlab("Period") + 
+    scale_fill_manual(values = colors_layer_cust)
   
   if (cohortType == "Quarterly Cohorts"){
     plt <- plt + 
@@ -233,7 +235,8 @@ PlotCohortAgeLinechart <- function(data){
   
   xBreaks <- sort(unique(dtPlt$cohortAge))
   
-  ggplot(dtPlt, aes(x = cohortAge, y = N, color = cohort)) +
+  colors_layer_cust <- colorRampPalette(brewer.pal(n = 9, name = "Blues"))(length(xBreaks))
+  ggplot(dtPlt, aes(x = cohortAge, y = N, fill = cohort)) +
     geom_line() +
     geom_point(size = 2, alpha = 0.5) +
     theme_classic() +
@@ -241,15 +244,16 @@ PlotCohortAgeLinechart <- function(data){
       axis.text = element_text(color = "grey50", size = 12),
       axis.text.x = element_text(angle = 60, hjust = .5, vjust = .5, face = "plain"),
       axis.title = element_text(color = "grey30", size = 12, face = "bold"),
-      axis.title.y = element_text(angle = 0),
+      axis.title.y = element_text(angle = 90),
       axis.line = element_line(color = "grey50"),
       legend.position = "top",
       legend.text = element_text(color = "grey50")
     ) +
     scale_x_continuous(breaks = xBreaks) +
-    labs(color = "Cohort") +
+    labs(fill = "Cohort") +
     xlab("Age") +
-    ylab("Number \n of \n Customers")
+    ylab("Number of Customers") +
+    scale_fill_manual(values = colors_layer_cust)
 }
 
 PlotCohortTableOfNumPurchases <- function(data){
