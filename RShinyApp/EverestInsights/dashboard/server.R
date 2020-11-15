@@ -50,7 +50,7 @@ server <- function(input, output, session) {
     PlotCohortTableOfNumPurchases(data)
   })
   
-  output$cohortTableCustom <- renderPlot({
+  output$cohortTableCustom <- renderPlot(expr = {
     data <- GetDataCohortTableCustom(
       translog = translog(),
       x = "orderPeriod",
@@ -63,5 +63,5 @@ server <- function(input, output, session) {
     } else {
       return(PlotCohortTableCustom(data, perc = T))
     }
-  })
+  }, height = 600)
 }
