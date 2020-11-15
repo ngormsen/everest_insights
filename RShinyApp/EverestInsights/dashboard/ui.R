@@ -15,6 +15,7 @@ tabCohortAnalysis <- tabItem(
   box(
     selectInput("selectSummariseVar", "Variable", choices = c("amountSpent")),
     selectInput("selectSummariseFunc", "Function", choices = c("mean", "median", "max", "min", "sum", "n_distinct")),
+    selectInput("selectRelativeTo", "Relative To", choices = c("none", "acq", "prev")),
     plotOutput("cohortTableCustom")
   )
 )

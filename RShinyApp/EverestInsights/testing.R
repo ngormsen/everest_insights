@@ -27,18 +27,12 @@ clv <- ComputeCLV(dt)
 PlotCLVDensity(clv)
 PlotRecencyFrequency(ComputeRecencyFrequency(dt))
 
+x <- GetDataCohortTableCustom(dt, x = "orderPeriod", var = "amountSpent", fun = mean, relativeTo = "acq")
+PlotCohortTableCustom(x, perc = T)
 
-GetDataCohortTableCustom <- function(translog, x, z, fun){
-  data <- translog %>% 
-    group_by(cohort, get(x)) %>% 
-    summarise_at(.vars = z, .funs = fun) %>% 
-    rename(period = `get(x)`) %>%
-    mutate(cohort = as.factor(cohort)) %>% 
-    mutate(cohort = factor(cohort, levels = rev(levels(cohort)))) %>% 
-    setDT()
-  
-  setnames(data, old = z, new = "z")
-  return(data)
-}
+acqRev <- dt %>%
+  group_by(cohort) %>% 
+  summarise(acqRev = var) %>% 
+  filter(orderId = min(orderId))
 
 GetDataCohortTableOfNumPurchases(dt, x = "orderPeriod", z = "amountSpent", fun = median)

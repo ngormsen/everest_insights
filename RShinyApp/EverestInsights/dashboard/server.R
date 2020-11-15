@@ -55,8 +55,13 @@ server <- function(input, output, session) {
       translog = translog(),
       x = "orderPeriod",
       var = input$selectSummariseVar,
-      fun = input$selectSummariseFunc
+      fun = input$selectSummariseFunc,
+      relativeTo = input$selectRelativeTo
     )
-    PlotCohortTableCustom(data)
+    if (input$selectRelativeTo == "none"){
+      return(PlotCohortTableCustom(data, perc = F))
+    } else {
+      return(PlotCohortTableCustom(data, perc = T))
+    }
   })
 }

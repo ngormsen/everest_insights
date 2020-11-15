@@ -102,7 +102,7 @@ GetDataCohortTableOfNumPurchases <- function(translog, x){
   return(data)
 }
 
-GetDataCohortTableCustom <- function(translog, x, var, fun){
+GetDataCohortTableCustom <- function(translog, x, var, fun, relativeTo = NULL){
   data <- translog %>% 
     group_by(cohort, get(x)) %>% 
     summarise_at(.vars = var, .funs = fun) %>% 
@@ -110,8 +110,22 @@ GetDataCohortTableCustom <- function(translog, x, var, fun){
     mutate(cohort = as.factor(cohort)) %>% 
     mutate(cohort = factor(cohort, levels = rev(levels(cohort)))) %>% 
     setDT()
+  
   setnames(data, old = var, new = "var")
   data[, var := round(var)]
+  
+  if (relativeTo == "acq"){
+    acq <- data[period == cohort]
+    acq[, acqValue := var]
+    acq <- acq[, c("cohort", "acqValue")]
+    
+    data <- merge(data, acq, by = "cohort", all.x = T)
+    data[, var := round((var / acqValue) * 100)]
+    data[, varLabel := paste0(var, "%")]
+    return(data)
+  } else if (relativeTo == "prev"){
+    #TODO    
+  } 
   return(data)
 }
 
@@ -245,10 +259,9 @@ PlotCohortTableOfNumPurchases <- function(data){
     )
 }
 
-PlotCohortTableCustom <- function(data){
-  ggplot(data, aes(x = period, y = cohort, fill = var)) +
+PlotCohortTableCustom <- function(data, perc = F){
+  plt <- ggplot(data, aes(x = period, y = cohort, fill = var)) +
     geom_raster() +
-    geom_text(aes(label = var), color = "black") +
     scale_fill_continuous(high = "#239af6", low = "#e7f4fe") +
     theme_classic() +
     theme(
@@ -259,6 +272,20 @@ PlotCohortTableCustom <- function(data){
       axis.line = element_line(color = "grey50"), 
       legend.position = "none"
     )
+  
+  if (perc == F){
+    plt <- plt + geom_text(
+      data = data, 
+      mapping = aes(x = period, y = cohort, label = var), color = "black"
+    )
+  } else if (perc == T){
+    plt <- plt + geom_text(
+      data = data, 
+      mapping = aes(x = period, y = cohort, label = varLabel), 
+      color = "black"
+    )
+  }
+  return(plt)
 }
 
 PlotCLVDensity <- function(dataCLV) {
