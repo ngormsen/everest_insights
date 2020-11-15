@@ -1,12 +1,16 @@
 library(shiny)
 library(shinydashboard)
 library(DT)
+source("../html_elements.R")
 
 # Sidebar Tabs ------------------------------------------------------------
 tabDashboard <- tabItem(
   tabName = "tabDashboard",
-  box(valueBoxOutput("myvaluebox")),
-  DTOutput(outputId="plotTranslogRaw")
+  valueBoxOutput("myvaluebox"),
+  valueBoxOutput("numberOfCustomers"),
+  box(plotOutput("customerPerMonth")),
+  box(plotOutput("revenuePerMonth")),
+  DTOutput(outputId="plotTranslogRaw"),
 )
 
 tabCohortAnalysis <- tabItem(

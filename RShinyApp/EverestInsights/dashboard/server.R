@@ -41,4 +41,45 @@ server <- function(input, output, session) {
       subtitle = "Avg. Order Size"
     )
   })
+
+  numberOfCustomers <- reactive({
+   length(unique(translogClean()$custId))
+  })
+  
+  computeDataPerMonth <- function(transLog) {
+    dt <- copy(transLog)
+    dt[, numOrdersPerMonth := .N, by = .(custId, orderPeriod)]
+    dt[, amountSpentPerOrderPeriod := sum(amountSpent), by = orderPeriod]
+    customerPerMonth <- unique(dt, by = "orderPeriod")
+    revenuePerMonth <- unique(dt, by = "orderPeriod")
+    return(list(customerPerMonth=customerPerMonth, revenuePerMonth=revenuePerMonth))
+  }
+  
+  
+  output$customerPerMonth <- renderPlot({
+    ggplot(data = computeDataPerMonth(translog())[["customerPerMonth"]], aes(x = orderPeriod, y = numOrdersPerMonth)) +
+      geom_bar(stat = "identity", fill = "steelblue", color = "white", width = 0.5) +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 50, size = 8)) +
+      ggtitle(paste("Number of Customers per Month")) +
+      ylab("Number of Customers")
+  })
+  
+  output$revenuePerMonth <- renderPlot({
+    ggplot(data = computeDataPerMonth(translog())[["revenuePerMonth"]], aes(x = orderPeriod, y = amountSpentPerOrderPeriod)) +
+      geom_bar(stat = "identity", fill = "steelblue", color = "white", width = 0.5) +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 50, size = 8)) +
+      ggtitle(paste("Revenue Per Month")) +
+      ylab("Revenue Per Month")
+  })
+  
+  
+  output$numberOfCustomers <- renderValueBox({
+    valueBox(
+      value = numberOfCustomers(),
+      subtitle = "numberOfCustomers",
+      icon = icon("credit-card")
+    )
+  })
 }
