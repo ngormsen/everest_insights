@@ -33,7 +33,7 @@ server <- function(input, output, session) {
 
 
 
-# Plots -------------------------------------------------------------------
+# Plots DashBoard----------------------------------------------------------
   output$plotTranslogRaw <- renderDT({
     PlotTranslog(translogClean())
   })
@@ -48,16 +48,6 @@ server <- function(input, output, session) {
   numberOfCustomers <- reactive({
    length(unique(translogClean()$custId))
   })
-  
-  computeDataPerMonth <- function(transLog) {
-    dt <- copy(transLog)
-    dt[, numOrdersPerMonth := .N, by = .(custId, orderPeriod)]
-    dt[, amountSpentPerOrderPeriod := sum(amountSpent), by = orderPeriod]
-    customerPerMonth <- unique(dt, by = "orderPeriod")
-    revenuePerMonth <- unique(dt, by = "orderPeriod")
-    return(list(customerPerMonth=customerPerMonth, revenuePerMonth=revenuePerMonth))
-  }
-  
   
   output$customerPerMonth <- renderPlot({
     ggplot(data = computeDataPerMonth(translog())[["customerPerMonth"]], aes(x = orderPeriod, y = numOrdersPerMonth)) +
@@ -85,6 +75,7 @@ server <- function(input, output, session) {
       icon = icon("credit-card")
     )
   })
+# Plots Cohort----------------------------------------------------------
   
   output$cohortTableNPurchases <- renderPlot({
     data <- GetDataCohortTableOfNumPurchases(translog(), x = "orderPeriod")

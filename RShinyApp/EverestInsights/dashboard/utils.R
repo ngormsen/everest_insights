@@ -129,6 +129,15 @@ GetDataCohortTableCustom <- function(translog, x, var, fun, relativeTo = NULL){
   return(data)
 }
 
+computeDataPerMonth <- function(transLog) {
+  dt <- copy(transLog)
+  dt[, numOrdersPerMonth := .N, by = .(custId, orderPeriod)]
+  dt[, amountSpentPerOrderPeriod := sum(amountSpent), by = orderPeriod]
+  customerPerMonth <- unique(dt, by = "orderPeriod")
+  revenuePerMonth <- unique(dt, by = "orderPeriod")
+  return(list(customerPerMonth=customerPerMonth, revenuePerMonth=revenuePerMonth))
+}
+
 # Plots -------------------------------------------------------------------
 PlotC3 <- function(data, cohortType){
   dtPlt <- data[, .N, by = .(cohort, orderPeriod)]
