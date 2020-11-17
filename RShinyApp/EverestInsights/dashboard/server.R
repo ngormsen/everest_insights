@@ -4,6 +4,11 @@ library(DT)
 library(lubridate)
 library(RColorBrewer)
 
+# For displaying Regression Output
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+
 source("ui.R")
 source("utils.R")
 
@@ -31,8 +36,25 @@ server <- function(input, output, session) {
   })
 
 # Computations ------------------------------------------------------------
-
-
+  
+  cohortTable <- reactive({
+    GetDataCohortTableCustom(
+      translog = translog(),
+      x = "orderPeriod",
+      var = input$selectSummariseVar,
+      fun = input$selectSummariseFunc,
+      relativeTo = input$selectRelativeTo
+    )
+  })
+    
+  linearModel <- eventReactive(input$lmRun, {
+    ComputeLinearModel(data = cohortTable(), predictors = input$lmPredictors)
+  })
+  
+  linearModelFit <- reactive({
+    dtPlt <- CreateDataForLinearModelFit(model = linearModel()[["model"]], 
+                                         data = linearModel()[["data"]])
+  })
 
 # Plots DashBoard----------------------------------------------------------
   output$plotTranslogRaw <- renderDT({
@@ -97,17 +119,32 @@ server <- function(input, output, session) {
   })
   
   output$cohortTableCustom <- renderPlot(expr = {
-    data <- GetDataCohortTableCustom(
-      translog = translog(),
-      x = "orderPeriod",
-      var = input$selectSummariseVar,
-      fun = input$selectSummariseFunc,
-      relativeTo = input$selectRelativeTo
-    )
     if (input$selectRelativeTo == "none"){
-      return(PlotCohortTableCustom(data, perc = F))
+      return(PlotCohortTableCustom(cohortTable(), perc = F))
     } else {
-      return(PlotCohortTableCustom(data, perc = T))
+      return(PlotCohortTableCustom(cohortTable(), perc = T))
     }
   }, height = 600)
+  
+  output$lm <- renderUI({
+    depVarLabel <- SetLabelForDepVar(
+      summariseVar = input$selectSummariseVar,
+      summariseFunc = input$selectSummariseFunc,
+      relativeTo = input$selectRelativeTo
+    )
+    HTML(
+      MarginTopBottom(
+        CreateRegressionHTMLTable(linearModel()[["model"]], depVarLabel)
+      )
+    )
+  })
+  
+  output$lmInsights <- renderUI({
+    interpretations <- InterpretCoefficients(model = linearModel()[["model"]])
+    HTML(interpretations)
+  })
+  
+  output$lmFit <- renderPlot({
+    PlotLinearModelFit(linearModelFit())
+  })
 }
