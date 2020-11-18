@@ -1,3 +1,5 @@
+library(glue)
+
 # Computations ------------------------------------------------------------
 PreprocessRawTransactionLog <- function(data, columns){
   # only select relevant columns
@@ -374,6 +376,128 @@ PlotTranslog <- function(translog) {
 }
 
 
+# Linear Regression -------------------------------------------------------------------
+
+#' Fits linear regression where APC Variables are numeric
+#'
+#' @param data output from 'GetDataCohortTableCustom'
+#' @param predictors c(character) e.g. c("age", "period")
+#' @return named list: (1) the data used to fit the model and (2) the model 
+#' object returned by lm()
+ComputeLinearModel <- function(data, predictors){
+  # convert cohort & period from factor to integer (to get a linear trend)
+  dt <- copy(data)
+  dt[, ':='(cohort = as.numeric(factor(cohort, levels = rev(levels(cohort)))),
+            period = as.numeric(as.factor(period)))]
+  dt[, age := period - cohort]
+  setnames(x = dt, old = "var", new = "Y")
+  
+  predictors <- paste(predictors, collapse = "+") # > "x1 + x2 + ..."
+  
+  model <- lm(
+    formula = as.formula(paste0("Y ~ ", predictors)),
+    data = dt
+  )
+  
+  return(list(data = dt, model = model))
+}
+
+SetLabelForDepVar <- function(summariseVar, summariseFunc, relativeTo){
+  if (summariseFunc == "n_distinct"){
+    depVarLabel <- "Count"
+  } else {
+    depVarLabel <- paste0(summariseFunc, "(", summariseVar, ")")
+  }
+  
+  if (relativeTo == "acq") {
+    depVarLabel <- paste0(depVarLabel, " relative to acq. period")
+  } else if (relativeTo == "prev") {
+    depVarLabel <- paste0(depVarLabel, " relative to prev. period")
+  }
+  return(depVarLabel)
+}
+
+CreateRegressionHTMLTable <- function(model, depVarLabel) {
+  regTbl <- stargazer::stargazer(
+    model,
+    type = "html",
+    report = "vc*", # removes standard errors
+    dep.var.labels = depVarLabel
+  )
+  regTbl <- paste(regTbl, collapse = "")
+  return(regTbl)
+}
+
+InterpretCoefficients <- function(model){
+  coefs <- as.matrix(round(coef(model), 2))
+  coefNames <- rownames(coefs)
+  nCoefs <- nrow(coefs)
+  
+  interpretations <- sapply(seq_along(coefs), function(i){
+    predictor <- coefNames[i]
+    coef <- coefs[i]
+    
+    out <- ""
+    if (predictor == "age"){
+      if (coef < 0) {
+        out <- glue("Every additional age {Bold('decreases')} the dependent variable by {Bold(coef)}.")
+      } else {
+        out <- glue("Every additional age {Bold('increases')} the dependent variable by {Bold(coef)}")
+      }
+    } else if (predictor == "cohort") {
+      if (coef < 0) {
+        out <- glue("Every subsequent cohort {Bold('decreases')} the dependent variable by {Bold(coef)}")
+      } else {
+        out <- glue("Every subsequent cohort {Bold('decreases')} the dependent variable by {Bold(coef)}")
+      }
+    } else if (predictor == "period") {
+      if (coef < 0) {
+        out <- glue("Every additional period is expected to {Bold('decreases')} the dependent variable by {Bold(coef)}.")
+      } else {
+        out <- glue("Every additional period is expected to {Bold('increases')} the dependent variable by {Bold(coef)}")
+      }
+    } else if (predictor == "(Intercept)"){
+      out <- glue("The average value of the dependent variable when all predictors are 0 is {Bold(coef)}")
+    }
+    out <- glue("<p>{out}</p>")
+    return(out)
+  })
+  return(paste(interpretations, collapse = ""))
+}
+
+CreateDataForLinearModelFit <- function(model, data){
+  preds <- predict.lm(object = model, newdata = data)
+  
+  dtActual <- copy(data)
+  dtActual[, label := "actual"]
+  
+  dtModel <- copy(data)
+  dtModel[, Y := preds]
+  dtModel[, label := "model"]
+    
+  dtPlt <- rbind(dtActual, dtModel)
+  return(dtPlt)
+}
+
+PlotLinearModelFit <- function(dtPlt) {
+  dtActual <- dtPlt[label == "actual"]
+  dtModel <- dtPlt[label == "model"]
+  
+  ggplot() +
+    geom_line(
+      data = dtActual,
+      mapping = aes(x = age, y = Y, color = as.factor(cohort))
+    ) +
+    geom_line(
+      data = dtModel,
+      mapping = aes(x = age, y = Y, color = as.factor(cohort)),
+      linetype = "dashed",
+      size = 1,
+      alpha = 0.5
+    ) +
+    ThemeGG()
+}
+
 # Small Help Functions ---------------------------------------------------------------
 QuarterToTimestamp <- function(yearDotQuarter){
   year <- as.numeric(str_extract(yearDotQuarter, "[0-9]+"))
@@ -389,4 +513,29 @@ QuarterToPrettyString <- function(yearDotQuarter){
   year <- as.numeric(str_extract(yearDotQuarter, "[0-9]+"))
   qrtr <- as.numeric(str_sub(yearDotQuarter, -1, -1))
   return(paste0(year, " Q", qrtr))
+}
+
+Bold <- function(x){
+  spanOpen <- "<span style='font-weight: bold'>"
+  spanClose <- "</span>"
+  return(paste0(spanOpen, x, spanClose))
+}
+
+MarginTopBottom <- function(x){
+  openTag <- "<div style='margin: 2rem 0'>"
+  closeTag <- "</div>"
+  return(paste0(openTag, x, closeTag))
+}
+
+ThemeGG <- function(){
+  theme_classic() +
+  theme(
+    axis.text = element_text(color = "grey50", size = 12),
+    axis.text.x = element_text(angle = 60, hjust = .5, vjust = .5, face = "plain"),
+    axis.title = element_text(color = "grey30", size = 12, face = "bold"),
+    axis.title.y = element_text(angle = 0),
+    axis.line = element_line(color = "grey50"),
+    legend.position = "top",
+    legend.text = element_text(color = "grey50")
+  )
 }

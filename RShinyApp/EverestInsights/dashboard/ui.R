@@ -15,23 +15,44 @@ tabDashboard <- tabItem(
   box(plotOutput("revenuePerCustomerCohortDevelopment")),
   box(plotOutput("plotC3")),
   box(plotlyOutput("uniqueCustomerPerMonth")),
-  DTOutput(outputId="plotTranslogRaw"),
+  # DTOutput(outputId="plotTranslogRaw"),
 )
 
 tabCohortAnalysis <- tabItem(
   tabName = "tabCohortAnalysis",
-  # box(title="Number of Purchases", plotOutput("cohortTableNPurchases")),
-  box(
-    fluidRow(
-      column(4, selectInput("selectSummariseVar", "Variable", choices = c("amountSpent"))),
-      column(4, selectInput("selectSummariseFunc", "Function", choices = c("mean", "median", "max", "min", "sum", "n_distinct"))),
-      column(4, selectInput("selectRelativeTo", "Relative To", choices = c("none", "acq", "prev")))
+  fluidRow(
+    box(
+      fluidRow(
+        column(4, selectInput("selectSummariseVar", "Variable", choices = c("amountSpent"))),
+        column(4, selectInput("selectSummariseFunc", "Function", choices = c("mean", "median", "max", "min", "sum", "n_distinct"))),
+        column(4, selectInput("selectRelativeTo", "Relative To", choices = c("none", "acq", "prev")))
+      ),
+      plotOutput("cohortTableCustom"),
+      title = "Cohort Analysis",
+      solidHeader = T,
+      width = 12,
+      height = "850px"
     ),
-    plotOutput("cohortTableCustom"),
-    title = "Cohort Analysis",
-    solidHeader = T,
-    width = 12,
-    height = "850px"
+    box(
+      fluidRow(
+        column(2,
+          selectInput("lmPredictors",
+                      label = "Predictors",
+                      choices = c("age", "cohort", "period", "as.factor(age)", "as.factor(cohort)", "as.factor(period)"),
+                      multiple = T),
+          actionButton("lmRun", label = "Run")
+        ),
+        column(5,
+          htmlOutput("lm"),
+          htmlOutput("lmInsights"),
+        ),
+        column(5,
+          plotOutput("lmFit")
+        )
+      ),
+      title = "Simple Linear Regression",
+      width = 12
+    )
   )
 )
 
