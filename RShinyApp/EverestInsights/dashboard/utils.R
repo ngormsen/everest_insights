@@ -138,6 +138,12 @@ computeDataPerMonth <- function(transLog) {
   return(list(customerPerMonth=customerPerMonth, revenuePerMonth=revenuePerMonth))
 }
 
+computeUniqueCustomerPerMonth <- function(transLog){
+  dt <- transLog %>%
+    group_by(orderPeriod) %>%
+    summarise(n = n_distinct(custId))
+}
+
 # Plots -------------------------------------------------------------------
 PlotC3 <- function(data, cohortType){
   dtPlt <- data[, .N, by = .(cohort, orderPeriod)]
@@ -299,6 +305,16 @@ PlotCohortTableCustom <- function(data, perc = F){
     )
   }
   return(plt)
+}
+
+plotUniqueCustomerPerMonth <- function(data){
+  ggplotly(ggplot(data = data, aes(x = orderPeriod, y = n)) +
+    geom_bar(stat = "identity", fill = "steelblue", color = "white", width = 0.5) +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 50, size = 8)) +
+    ggtitle(paste("Unique Customers per Month")) +
+    ylab("Number of Unique Customers")) %>% 
+    config(displayModeBar = F)
 }
 
 PlotCLVDensity <- function(dataCLV) {

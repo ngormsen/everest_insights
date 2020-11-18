@@ -3,6 +3,7 @@ library(tidyverse)
 library(DT)
 library(lubridate)
 library(RColorBrewer)
+library(plotly)
 
 source("ui.R")
 source("utils.R")
@@ -76,6 +77,10 @@ server <- function(input, output, session) {
     PlotCohortAgeLinechart(dt())
   })
   
+  output$uniqueCustomerPerMonth <- renderPlotly({
+    plotUniqueCustomerPerMonth(computeUniqueCustomerPerMonth(translog()))
+  })
+  
   output$numberOfCustomers <- renderValueBox({
     valueBox(
       value = numberOfCustomers(),
@@ -84,6 +89,7 @@ server <- function(input, output, session) {
     )
   })
   
+
   output$plotC3 <- renderPlot({
     PlotC3(dt(), "Monthly Cohorts")
   })

@@ -1,6 +1,8 @@
 library(shiny)
 library(shinydashboard)
 library(DT)
+library(plotly)
+
 source("../html_elements.R")
 
 # Sidebar Tabs ------------------------------------------------------------
@@ -12,6 +14,7 @@ tabDashboard <- tabItem(
   box(plotOutput("revenuePerMonth")),
   box(plotOutput("revenuePerCustomerCohortDevelopment")),
   box(plotOutput("plotC3")),
+  box(plotlyOutput("uniqueCustomerPerMonth")),
   DTOutput(outputId="plotTranslogRaw"),
 )
 
